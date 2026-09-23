@@ -19,3 +19,11 @@ pnpm-debug.log*
 .env.production.local
 .cache/
 *.log
+
+# build output
+dist/
+
+# local tooling and agent artifacts
+.agents/
+.commandcode/
+skills-lock.json
