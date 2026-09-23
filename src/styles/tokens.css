@@ -1,0 +1,66 @@
+/* Design tokens — the single source of truth for colour, type, space,
+   radii, and motion. Components reference these variables; values change
+   here and nowhere else. */
+
+:root {
+  /* Colour */
+  --bg: #020203;
+  --text: #f5f5f5; /* primary copy, headings */
+  --text-secondary: rgba(255, 255, 255, 0.72); /* ~10:1 — body copy */
+  --text-muted: rgba(255, 255, 255, 0.58); /* ~6.8:1 — small labels, 12px+ */
+  --text-faint: rgba(255, 255, 255, 0.4); /* ~3.7:1 — large text and decoration only */
+
+  --line: rgba(255, 255, 255, 0.08); /* dividers, card borders */
+  --line-strong: rgba(255, 255, 255, 0.15); /* hover borders, outlines */
+  --surface: rgba(255, 255, 255, 0.02); /* card fills */
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --tag-bg: rgba(255, 255, 255, 0.06);
+  --overlay: rgba(2, 2, 3, 0.98); /* full-screen menu */
+  --nav-bg: rgba(2, 2, 3, 0.9); /* scrolled nav */
+
+  /* Type */
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-brand: "Molen Friend", Georgia, serif;
+
+  --type-hero: clamp(48px, 10vw, 110px); /* hero name — locked with the hero comps */
+  --type-section: clamp(1.75rem, 3.5vw, 2.5rem);
+  --type-body: 1rem;
+  --type-small: 0.875rem;
+  --type-micro: 0.75rem;
+
+  --leading-body: 1.7;
+
+  /* Space */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  --section-pad: clamp(64px, 9vw, 120px);
+  --container: 1200px;
+  --gutter: 24px;
+
+  /* Radii */
+  --radius-card: 12px;
+  --radius-tile: 14px;
+  --radius-pill: 100px;
+
+  /* Motion */
+  --dur-micro: 150ms;
+  --dur-hover: 250ms;
+  --dur-reveal: 600ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 48px;
+  }
+}
