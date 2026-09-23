@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — foundation work complete, awaiting owner review. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — foundation and token work complete; awaiting owner review. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -154,11 +154,11 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 1 — Tokens, type, and spacing system
 **Goal:** one token layer every component uses; the contrast policy enforced.
 
-- [ ] Create `src/styles/tokens.css`, `base.css`, `utilities.css`; split `index.css`.
-- [ ] Add the color, spacing, radius, and motion tokens from the table in section 4.
-- [ ] Global base: `:focus-visible` outline (2px, 2px offset), `::selection`, `scroll-margin-top` for anchors, `prefers-reduced-motion` block, sensible defaults.
-- [ ] Typography scale: display `clamp(2.5rem, 6vw, 4.5rem)`, section headings `clamp(1.75rem, 3.5vw, 2.5rem)`, body 1rem/1.7, small 0.875rem, micro 0.75rem minimum — nothing smaller.
-- [ ] Refactor every component's hardcoded values to tokens; produce the contrast table (token → ratio) as verification evidence.
+- [x] Create `src/styles/tokens.css`, `base.css`, `utilities.css`; split `index.css`.
+- [x] Add the color, spacing, radius, and motion tokens from the table in section 4.
+- [x] Global base: `:focus-visible` outline (2px, 2px offset), `::selection`, `scroll-margin-top` for anchors, `prefers-reduced-motion` block, sensible defaults.
+- [x] Typography scale: display `clamp(2.5rem, 6vw, 4.5rem)`, section headings `clamp(1.75rem, 3.5vw, 2.5rem)`, body 1rem/1.7, small 0.875rem, micro 0.75rem minimum — nothing smaller.
+- [x] Refactor every component's hardcoded values to tokens; produce the contrast table (token → ratio) as verification evidence.
 
 **Verify:** contrast table; visual regression pass at 1440/390; no `rgba(255,255,255,0.3)`-class values left in components.
 
