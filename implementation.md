@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — foundation and token work complete; awaiting owner review. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — foundation, token and hero work complete; awaiting owner review. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -165,12 +165,12 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 2 — Hero and identity (hero comps presented for sign-off mid-phase)
 **Goal:** the first screen states who you are and what you do, keeping the signature look.
 
-- [ ] Copy: role line ("Data Scientist / Data Engineer — Hyderabad, India") + proof line (strongest scale/metric, e.g. "110k+ records analysed") + keep "Concept. Code. Deployment." as a small eyebrow, not the main message.
-- [ ] Produce 3 hero comps as rendered screenshots (typography scale, tagline placement, sphere crop) and present for sign-off before locking.
-- [ ] CTAs: "View Work" (primary, hover fixed in Phase 0) and "Download Résumé" (secondary) — résumé moves up from the buried icon.
-- [ ] Sphere optimization: dynamic `import()` chunk, adaptive particle count (reduced below 1280px, static single frame under reduced-motion), DPR cap 1.5, pause when off-screen, keep drag interaction.
-- [ ] Mobile hero: deliberate treatment without the sphere (tightened scale and spacing; no dead zones).
-- [ ] Fix the misleading cursor growth (D8 guardrails).
+- [x] Copy: role line ("Data Scientist / Data Engineer — Hyderabad, India") + proof line (strongest scale/metric, e.g. "110k+ records analysed") + keep "Concept. Code. Deployment." as a small eyebrow, not the main message.
+- [x] Produce 3 hero comps as rendered screenshots (typography scale, tagline placement, sphere crop) and present for sign-off before locking.
+- [x] CTAs: "View Work" (primary, hover fixed in Phase 0) and "Download Résumé" (secondary) — résumé moves up from the buried icon.
+- [x] Sphere optimization: dynamic `import()` chunk, adaptive particle count (reduced below 1280px, static single frame under reduced-motion), DPR cap 1.5, pause when off-screen, keep drag interaction.
+- [x] Mobile hero: deliberate treatment without the sphere (tightened scale and spacing; no dead zones).
+- [x] Fix the misleading cursor growth (D8 guardrails).
 
 **Verify:** comps signed off; sphere chunk not in first-load graph; screenshots at 1440/768/390.
 
