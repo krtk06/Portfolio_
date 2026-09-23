@@ -36,12 +36,12 @@ function Hero() {
           </p>
           <div className="hero-actions">
             <a href="#work" className="btn-primary" onClick={(e) => handleScroll(e, 'work')}>
-              View Work
+              <span>View Work</span>
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 8h10M9 4l4 4-4 4" />
               </svg>
             </a>
-            <a href="#contact" className="btn-secondary" onClick={(e) => handleScroll(e, 'contact')}>Get In Touch</a>
+            <a href="#contact" className="btn-secondary" onClick={(e) => handleScroll(e, 'contact')}><span>Get In Touch</span></a>
           </div>
         </div>
         {!isMobile && (

@@ -337,7 +337,7 @@ body {
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;
-  z-index: -1;
+  z-index: 0;
   border-radius: inherit;
 }
 .btn-primary:hover { 
@@ -372,7 +372,7 @@ body {
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;
-  z-index: -1;
+  z-index: 0;
   border-radius: inherit;
 }
 .btn-secondary:hover { 
@@ -382,6 +382,13 @@ body {
 .btn-secondary:hover::before {
   transform: scaleX(1);
   transform-origin: right;
+}
+.btn-primary > span,
+.btn-primary > svg,
+.btn-secondary > span,
+.btn-secondary > svg {
+  position: relative;
+  z-index: 1;
 }
 
 .section {
