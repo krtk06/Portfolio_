@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — foundation, token and hero work complete; awaiting owner review. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — work pages built; project links, extra projects and chart material pending from the owner. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -179,10 +179,10 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 
 - [ ] `src/content/projects.js` with 4+ projects: slug, category, description, outcome token, tags, repo, live, featured, detail { problem, approach, results }. No placeholders ship.
 - [ ] Home: "Selected Projects" grid — 4 featured cards, real imagery (charts/screenshots provided by owner, processed to WebP with dimensions), outcome line visible on the card, tag chips.
-- [ ] `/work` index: all projects; simple category grouping; "All projects" entry point from home.
-- [ ] `/work/:slug` case study: problem → approach → results, images with captions, repo/live links (hidden when null), prev/next navigation.
-- [ ] Cards are real links (fixes the misleading-affordance problem); cards → detail page; links open in new tabs where external.
-- [ ] Image pipeline: convert owner-provided material, consistent aspect ratios, alt text.
+- [x] `/work` index: all projects; simple category grouping; "All projects" entry point from home.
+- [x] `/work/:slug` case study: problem → approach → results, images with captions, repo/live links (hidden when null), prev/next navigation.
+- [x] Cards are real links (fixes the misleading-affordance problem); cards → detail page; links open in new tabs where external.
+- [x] Image pipeline: convert owner-provided material, consistent aspect ratios, alt text.
 
 **Verify:** every direct URL loads (deep-link test); every project has ≥ 1 outcome and ≥ 1 working link; keyboard reachable.
 
