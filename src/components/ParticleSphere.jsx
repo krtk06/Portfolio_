@@ -127,7 +127,7 @@ function ParticleSphere({ quality = 'desktop' }) {
     const particles = new THREE.Points(geometry, material)
     scene.add(particles)
 
-    const clock = new THREE.Clock()
+    const startTime = performance.now()
     let mouse3D = new THREE.Vector3(50, 50, 50)
     let isDragging = false
     let startX = 0
@@ -205,7 +205,7 @@ function ParticleSphere({ quality = 'desktop' }) {
     const animate = () => {
       animationId = requestAnimationFrame(animate)
 
-      const time = clock.getElapsedTime()
+      const time = (performance.now() - startTime) / 1000
       material.uniforms.uTime.value = time
       if (useMouse) {
         material.uniforms.uMouse.value.copy(mouse3D)
