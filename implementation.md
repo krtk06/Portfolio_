@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in review. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — foundation work complete, awaiting owner review. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -137,16 +137,16 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 0 — Foundation and baseline fixes
 **Goal:** a clean, deployable baseline with the reviewed defects fixed.
 
-- [ ] `.gitignore`: add `dist/`, `.agents/`, `.commandcode/`, `skills-lock.json`; run `git rm -r --cached dist`.
-- [ ] `vercel.json`: SPA rewrite `/(.*) → /index.html`; immutable cache headers for `/assets/*`.
-- [ ] Fix defect 1 — button hover: restructure the fill so the label reads in both states (label in a `position:relative; z-index:1` span, or animate `background-color` directly).
-- [ ] Fix defect 2 — deep links: with `vercel.json` in place, `/work`-style routes resolve; the old `/my-work` route is replaced in Phase 3.
-- [ ] Fix defect 3 — footer visibility: remove the fixed gradient overlay from above the footer (scope the fade to the hero, or raise the footer above it).
-- [ ] Fix defect 4 — navbar scrolled state: read the real scroll container (`document.body.scrollTop || window.scrollY`).
-- [ ] Fix defect 5 — favicon: generate a favicon set from `avatar.png` (16/32/180px + `site.webmanifest`).
-- [ ] Remove dead code: the `.reveal` opacity rules that never run, the `"Inter"` font reference (never loaded), the unused `.contact-email` rules that the component never renders.
-- [ ] Replace `THREE.Clock` usage (deprecation warning) with `Timer` or manual elapsed time.
-- [ ] Capture before/after screenshots of every fix.
+- [x] `.gitignore`: add `dist/`, `.agents/`, `.commandcode/`, `skills-lock.json`; run `git rm -r --cached dist`.
+- [x] `vercel.json`: SPA rewrite `/(.*) → /index.html`; immutable cache headers for `/assets/*`.
+- [x] Fix defect 1 — button hover: restructure the fill so the label reads in both states (label in a `position:relative; z-index:1` span, or animate `background-color` directly).
+- [x] Fix defect 2 — deep links: with `vercel.json` in place, `/work`-style routes resolve; the old `/my-work` route is replaced in Phase 3.
+- [x] Fix defect 3 — footer visibility: remove the fixed gradient overlay from above the footer (scope the fade to the hero, or raise the footer above it).
+- [x] Fix defect 4 — navbar scrolled state: read the real scroll container (`document.body.scrollTop || window.scrollY`).
+- [x] Fix defect 5 — favicon: generate a favicon set from `avatar.png` (16/32/180px + `site.webmanifest`).
+- [x] Remove dead code: the `.reveal` opacity rules that never run, the `"Inter"` font reference (never loaded), the unused `.contact-email` rules that the component never renders.
+- [x] Replace `THREE.Clock` usage (deprecation warning) with `Timer` or manual elapsed time.
+- [x] Capture before/after screenshots of every fix.
 
 **Files:** `index.html`, `vercel.json`, `.gitignore`, `public/favicon*`, `src/index.css`, `src/components/{Navbar,Hero,Contact,Footer,ParticleSphere}.jsx`
 **Verify:** all ten defects from Appendix A re-tested in a browser; `npm run build` clean; screenshots stored.
