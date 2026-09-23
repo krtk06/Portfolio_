@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
 
 const projects = [
   {
@@ -21,30 +20,16 @@ const projects = [
 ]
 
 function Work() {
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible')
-        }
-      })
-    }, { threshold: 0.1 })
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
-
-    return () => observer.disconnect()
-  }, [])
-
   return (
     <section className="section section-work" id="work">
       <div className="section-inner">
-        <div className="section-label reveal visible">Work</div>
-        <h2 className="section-heading reveal reveal-delay-1 visible">
+        <div className="section-label">Work</div>
+        <h2 className="section-heading">
           Selected <span className="thin">Projects</span>
         </h2>
         <div className="work-grid">
-          {projects.map((project, index) => (
-            <div key={project.id} className={`work-card reveal reveal-delay-${index + 2} visible`}>
+          {projects.map((project) => (
+            <div key={project.id} className="work-card">
               <div className="work-card-image">
                 <img src={project.image} alt={project.title} loading="lazy" />
               </div>
@@ -62,7 +47,7 @@ function Work() {
           ))}
         </div>
         <div className="work-cta">
-          <Link to="/my-work" className="btn-secondary">My Work</Link>
+          <Link to="/my-work" className="btn-secondary"><span>My Work</span></Link>
         </div>
       </div>
     </section>

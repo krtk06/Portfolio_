@@ -1,5 +1,3 @@
-import { useEffect } from 'react'
-
 const skills = [
   { name: 'JavaScript', icon: 'JavaScript' },
   { name: 'TypeScript', icon: 'TypeScript' },
@@ -27,28 +25,14 @@ const skills = [
 const iconUrl = (icon) => `https://icon.icepanel.io/Technology/svg/${encodeURIComponent(icon)}.svg`
 
 function Skills() {
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible')
-        }
-      })
-    }, { threshold: 0.1 })
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
-
-    return () => observer.disconnect()
-  }, [])
-
   return (
     <section className="section section-skills" id="skills">
       <div className="section-inner">
-        <div className="section-label reveal visible">Skills</div>
-        <h2 className="section-heading reveal reveal-delay-1 visible">
+        <div className="section-label">Skills</div>
+        <h2 className="section-heading">
           Technical <span className="thin">Skills</span>
         </h2>
-        <div className="skills-grid reveal reveal-delay-2 visible">
+        <div className="skills-grid">
           {skills.map((skill, index) => (
             <div key={index} className="skill-card">
               <div className="skill-card-logo">

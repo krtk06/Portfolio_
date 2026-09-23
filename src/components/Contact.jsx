@@ -1,38 +1,22 @@
-import { useEffect } from 'react'
-
 function Contact() {
   const handleReachOut = () => {
     window.location.href = 'mailto:krtk2805@gmail.com'
   }
 
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible')
-        }
-      })
-    }, { threshold: 0.1 })
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
-
-    return () => observer.disconnect()
-  }, [])
-
   return (
     <section className="section section-contact" id="contact">
       <div className="section-inner">
-        <div className="section-label reveal visible">Contact</div>
-        <h2 className="section-heading reveal reveal-delay-1 visible">
+        <div className="section-label">Contact</div>
+        <h2 className="section-heading">
           Get In <span className="thin">Touch</span>
         </h2>
         <button className="btn-secondary reach-out-btn" onClick={handleReachOut}>
           <span>Reach Out</span>
         </button>
-        <p className="contact-text reveal reveal-delay-3 visible">
+        <p className="contact-text">
           I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision.
         </p>
-        <div className="contact-socials reveal reveal-delay-4 visible">
+        <div className="contact-socials">
           <button className="contact-social" aria-label="Email" onClick={handleReachOut}>
             <svg viewBox="0 0 24 24">
               <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
