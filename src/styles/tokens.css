@@ -23,7 +23,7 @@
   --font-sans: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-brand: "Molen Friend", Georgia, serif;
 
-  --type-hero: clamp(48px, 10vw, 110px); /* hero name — locked with the hero comps */
+  --type-hero: clamp(44px, 8.5vw, 96px); /* hero name — locked in with the hero comp review */
   --type-section: clamp(1.75rem, 3.5vw, 2.5rem);
   --type-body: 1rem;
   --type-small: 0.875rem;

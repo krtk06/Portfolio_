@@ -252,9 +252,9 @@ body.has-custom-cursor {
 }
 
 .hero-sphere {
-  flex: 0 0 50%;
-  width: 50%;
-  height: 600px;
+  flex: 0 0 52%;
+  width: 52%;
+  height: 680px;
   position: relative;
   background: transparent;
   overflow: hidden;
@@ -294,15 +294,6 @@ body.has-custom-cursor {
   margin-bottom: var(--space-6);
 }
 
-.hero-sub {
-  font-size: var(--type-small);
-  color: var(--text-muted);
-  line-height: 1.8;
-  max-width: 560px;
-  margin-bottom: var(--space-8);
-  opacity: 0;
-  animation: fadeInUp 0.7s 0.9s forwards;
-}
 .hero-actions {
   display: flex;
   gap: var(--space-3);
@@ -310,7 +301,6 @@ body.has-custom-cursor {
   animation: fadeInUp 0.7s 1.05s forwards;
 }
 
-/* TEMPORARY — hero comp variants for review (removed when the hero is locked) */
 .hero-eyebrow {
   font-size: var(--type-small);
   color: var(--text-secondary);
@@ -336,40 +326,6 @@ body.has-custom-cursor {
   margin-bottom: var(--space-6);
   opacity: 0;
   animation: fadeInUp 0.7s 0.95s forwards;
-}
-.hero-proof-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  list-style: none;
-  margin-bottom: var(--space-6);
-  opacity: 0;
-  animation: fadeInUp 0.7s 0.95s forwards;
-}
-.hero-proof-strip li {
-  font-size: var(--type-micro);
-  color: var(--text-secondary);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-}
-.hero[data-comp="b"] .hero-h1 {
-  font-size: clamp(44px, 8.5vw, 96px);
-}
-.hero[data-comp="b"] .hero-sphere {
-  flex: 0 0 52%;
-  width: 52%;
-  height: 680px;
-}
-.hero[data-comp="c"] .hero-text {
-  flex: 0 0 54%;
-  max-width: 54%;
-}
-.hero[data-comp="c"] .hero-sphere {
-  flex: 0 0 46%;
-  width: 46%;
-  height: 560px;
 }
 
 /* ------------------------------------------------------------------ */

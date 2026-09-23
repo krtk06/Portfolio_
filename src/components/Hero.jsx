@@ -3,15 +3,6 @@ import { person } from '../content/site'
 
 const ParticleSphere = lazy(() => import('./ParticleSphere'))
 
-/*
- * TEMPORARY review scaffolding: pick the hero variant with ?comp=a|b|c.
- * The chosen variant gets locked in and this switch is removed before the
- * phase is done.
- */
-const comp = new URLSearchParams(window.location.search).get('comp') || 'a'
-
-const proofTokens = person.proofLine.split('•').map((token) => token.trim())
-
 function Hero() {
   const [isMobile, setIsMobile] = useState(false)
   const [quality, setQuality] = useState('tablet')
@@ -36,52 +27,21 @@ function Hero() {
   }
 
   const [firstName, lastName] = person.name.split(' ')
-  const roleLine = `${person.roleLine} — ${person.location}`
 
   return (
-    <section className="hero" id="hero" data-comp={comp}>
+    <section className="hero" id="hero">
       <div className="hero-content">
         <div className="hero-text">
-          {comp === 'a' && (
-            <>
-              <p className="hero-eyebrow">{roleLine}</p>
-              <h1 className="hero-h1">
-                {firstName}<br /><span className="highlight">{lastName}</span>
-              </h1>
-              <div className="hero-line"></div>
-              <p className="hero-sub">{person.tagline}</p>
-              <p className="hero-proof">{person.proofLine}</p>
-            </>
-          )}
-          {comp === 'b' && (
-            <>
-              <p className="hero-eyebrow">{person.tagline}</p>
-              <h1 className="hero-h1">
-                {firstName}<br /><span className="highlight">{lastName}</span>
-              </h1>
-              <p className="hero-role">
-                {person.roleLine}
-                <span className="hero-loc"> — {person.location}</span>
-              </p>
-              <div className="hero-line"></div>
-              <p className="hero-proof">{person.proofLine}</p>
-            </>
-          )}
-          {comp === 'c' && (
-            <>
-              <p className="hero-eyebrow">{person.tagline}</p>
-              <h1 className="hero-h1">
-                {firstName}<br /><span className="highlight">{lastName}</span>
-              </h1>
-              <p className="hero-role">{roleLine}</p>
-              <div className="hero-line"></div>
-              <ul className="hero-proof-strip">
-                {proofTokens.map((token) => (
-                  <li key={token}>{token}</li>
-                ))}
-              </ul>
-            </>
-          )}
+          <p className="hero-eyebrow">{person.tagline}</p>
+          <h1 className="hero-h1">
+            {firstName}<br /><span className="highlight">{lastName}</span>
+          </h1>
+          <p className="hero-role">
+            {person.roleLine}
+            <span className="hero-loc"> — {person.location}</span>
+          </p>
+          <div className="hero-line"></div>
+          <p className="hero-proof">{person.proofLine}</p>
           <div className="hero-actions">
             <a href="#work" className="btn-primary" onClick={(e) => handleScroll(e, 'work')}>
               <span>View Work</span>
