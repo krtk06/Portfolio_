@@ -58,6 +58,9 @@
 .cursor-dot.hover {
   transform: translate(-50%, -50%) scale(1.8);
 }
+body.has-custom-cursor {
+  cursor: none;
+}
 
 /* ------------------------------------------------------------------ */
 /* Viewport fades                                                      */
@@ -715,8 +718,6 @@
     gap: var(--space-4);
     align-items: flex-start;
   }
-  .cursor, .cursor-dot { display: none; }
-  body { cursor: auto; }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
