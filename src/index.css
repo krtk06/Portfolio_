@@ -310,6 +310,68 @@ body.has-custom-cursor {
   animation: fadeInUp 0.7s 1.05s forwards;
 }
 
+/* TEMPORARY — hero comp variants for review (removed when the hero is locked) */
+.hero-eyebrow {
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-3);
+  opacity: 0;
+  animation: fadeInUp 0.7s 0.45s forwards;
+}
+.hero-role {
+  font-size: clamp(1.125rem, 1.6vw, 1.375rem);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+  opacity: 0;
+  animation: fadeInUp 0.7s 0.75s forwards;
+}
+.hero-loc {
+  color: var(--text-muted);
+}
+.hero-proof {
+  font-size: var(--type-small);
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-6);
+  opacity: 0;
+  animation: fadeInUp 0.7s 0.95s forwards;
+}
+.hero-proof-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin-bottom: var(--space-6);
+  opacity: 0;
+  animation: fadeInUp 0.7s 0.95s forwards;
+}
+.hero-proof-strip li {
+  font-size: var(--type-micro);
+  color: var(--text-secondary);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+}
+.hero[data-comp="b"] .hero-h1 {
+  font-size: clamp(44px, 8.5vw, 96px);
+}
+.hero[data-comp="b"] .hero-sphere {
+  flex: 0 0 52%;
+  width: 52%;
+  height: 680px;
+}
+.hero[data-comp="c"] .hero-text {
+  flex: 0 0 54%;
+  max-width: 54%;
+}
+.hero[data-comp="c"] .hero-sphere {
+  flex: 0 0 46%;
+  width: 46%;
+  height: 560px;
+}
+
 /* ------------------------------------------------------------------ */
 /* Buttons                                                             */
 /* ------------------------------------------------------------------ */
@@ -691,8 +753,13 @@ body.has-custom-cursor {
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
   .mobile-menu { display: flex; }
+  .hero {
+    min-height: 0;
+    padding-bottom: 0;
+  }
   .hero-content {
-    padding: 100px var(--gutter) var(--space-8);
+    padding: 100px var(--gutter) var(--space-12);
+    min-height: 0;
     flex-direction: column;
     align-items: center;
     text-align: center;
