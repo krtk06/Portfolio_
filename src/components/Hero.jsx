@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react'
-import ParticleSphere from './ParticleSphere'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { person } from '../content/site'
+
+const ParticleSphere = lazy(() => import('./ParticleSphere'))
 
 function Hero() {
   const [isMobile, setIsMobile] = useState(false)
-  const [isTablet, setIsTablet] = useState(false)
+  const [quality, setQuality] = useState('tablet')
 
   useEffect(() => {
     const checkScreen = () => {
+      const coarsePointer = window.matchMedia('(pointer: coarse)').matches
       setIsMobile(window.innerWidth < 768)
-      setIsTablet(window.innerWidth >= 768 && window.innerWidth <= 1024)
+      setQuality(window.innerWidth >= 1280 && !coarsePointer ? 'desktop' : 'tablet')
     }
     checkScreen()
     window.addEventListener('resize', checkScreen)
@@ -23,16 +26,18 @@ function Hero() {
     }
   }
 
+  const [firstName, lastName] = person.name.split(' ')
+
   return (
     <section className="hero" id="hero">
       <div className="hero-content">
         <div className="hero-text">
           <h1 className="hero-h1">
-            Kartheek<br /><span className="highlight">Nistala</span>
+            {firstName}<br /><span className="highlight">{lastName}</span>
           </h1>
           <div className="hero-line"></div>
           <p className="hero-sub">
-            Concept. Code. Deployment.
+            {person.tagline}
           </p>
           <div className="hero-actions">
             <a href="#work" className="btn-primary" onClick={(e) => handleScroll(e, 'work')}>
@@ -46,7 +51,9 @@ function Hero() {
         </div>
         {!isMobile && (
           <div className="hero-sphere">
-            <ParticleSphere quality={isTablet ? 'tablet' : 'desktop'} />
+            <Suspense fallback={null}>
+              <ParticleSphere quality={quality} />
+            </Suspense>
           </div>
         )}
       </div>

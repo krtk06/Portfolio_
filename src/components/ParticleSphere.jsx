@@ -19,11 +19,13 @@ function ParticleSphere({ quality = 'desktop' }) {
       return
     }
 
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
     const width = container.clientWidth || 600
     const height = container.clientHeight || 600
 
     const renderer = new THREE.WebGLRenderer({ antialias: quality === 'desktop', alpha: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 'desktop' ? 2 : 1))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.setSize(width, height)
     renderer.setClearColor(0x000000, 0)
     container.appendChild(renderer.domElement)
@@ -136,7 +138,7 @@ function ParticleSphere({ quality = 'desktop' }) {
     let dragRotationX = 0
     let returnAnimation = { active: false, startY: 0, startX: 0, progress: 0 }
 
-    if (useMouse) {
+    if (useMouse && !reducedMotion) {
       const handleMouseDown = (e) => {
         isDragging = true
         startX = e.clientX
@@ -201,10 +203,7 @@ function ParticleSphere({ quality = 'desktop' }) {
       window.addEventListener('mouseup', handleMouseUp)
     }
 
-    let animationId
-    const animate = () => {
-      animationId = requestAnimationFrame(animate)
-
+    const renderFrame = () => {
       const time = (performance.now() - startTime) / 1000
       material.uniforms.uTime.value = time
       if (useMouse) {
@@ -218,13 +217,13 @@ function ParticleSphere({ quality = 'desktop' }) {
           returnAnimation.progress += 0.02
           const t = Math.min(returnAnimation.progress, 1)
           const ease = 1 - Math.pow(1 - t, 3)
-          
+
           const targetY = time * 0.12
           const targetX = Math.sin(time * 0.3) * 0.05
-          
+
           particles.rotation.y = returnAnimation.startY + (targetY - returnAnimation.startY) * ease
           particles.rotation.x = returnAnimation.startX + (targetX - returnAnimation.startX) * ease
-          
+
           if (t >= 1) {
             returnAnimation.active = false
           }
@@ -241,7 +240,38 @@ function ParticleSphere({ quality = 'desktop' }) {
 
       renderer.render(scene, camera)
     }
-    animate()
+
+    let animationId = 0
+    let running = false
+
+    const loop = () => {
+      animationId = requestAnimationFrame(loop)
+      renderFrame()
+    }
+    const start = () => {
+      if (running || reducedMotion) return
+      running = true
+      loop()
+    }
+    const stop = () => {
+      running = false
+      cancelAnimationFrame(animationId)
+    }
+
+    if (reducedMotion) {
+      particles.rotation.y = 0.6
+      particles.rotation.x = 0.05
+      renderer.render(scene, camera)
+    } else {
+      start()
+    }
+
+    /* Pause the render loop while the sphere is off-screen. */
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) start()
+      else stop()
+    })
+    intersectionObserver.observe(container)
 
     const resizeObserver = new ResizeObserver(() => {
       const w = container.clientWidth
@@ -255,7 +285,8 @@ function ParticleSphere({ quality = 'desktop' }) {
     resizeObserver.observe(container)
 
     return () => {
-      cancelAnimationFrame(animationId)
+      stop()
+      intersectionObserver.disconnect()
       resizeObserver.disconnect()
       if (renderer) {
         renderer.dispose()
