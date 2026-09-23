@@ -9,11 +9,16 @@ function Navbar() {
   const isHome = location.pathname === '/'
 
   useEffect(() => {
+    const getScrollTop = () =>
+      document.body.scrollTop || document.documentElement.scrollTop || window.scrollY || 0
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 80)
+      setScrolled(getScrollTop() > 80)
     }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true })
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true })
   }, [])
 
   const closeMenu = () => setMobileMenuOpen(false)
