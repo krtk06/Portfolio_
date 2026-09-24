@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — through performance and SEO; pending from the owner: Quiz Generator repo visibility, experience entries, the résumé PDF, and chart imagery. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: QA complete and a protected Vercel preview is deployed from `ft/redesign`; awaiting the owner’s go-ahead to merge to `main` (production still serves the old build) plus the pending content: Quiz Generator repo visibility, experience entries, the résumé PDF, chart imagery. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -235,10 +235,11 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 8 — QA and launch (needs the owner's explicit go-ahead to merge)
 **Goal:** ship, then prove the new score.
 
-- [ ] Device matrix via agent-browser: 360, 390, 768, 1024, 1440; every route; screenshots archived.
-- [ ] Link checker across all internal and external links (repo, demo, résumé, socials).
+- [x] Device matrix via agent-browser: 360, 390, 768, 1024, 1440; every route; screenshots archived.
+- [x] Link checker across all internal and external links (repo, demo, résumé, socials).
 - [ ] Cross-browser spot check (Chrome, Firefox, Safari/iOS if available).
-- [ ] Deploy Vercel preview from `ft/redesign`; owner reviews; fix fallout.
+- [x] Deploy Vercel preview from `ft/redesign` (deployed; owner review pending).
+- [ ] Cross-browser spot check — no Firefox or Safari available locally; owner to spot-check on a phone.
 - [ ] Merge to `main`; verify krtk06.vercel.app and krtk.xyz (both domains, redirects, HTTPS).
 - [ ] Post-launch smoke test: console clean, network 200s, OG share preview on LinkedIn.
 - [ ] Re-score section 1's table against the live site; target 9+ overall.
