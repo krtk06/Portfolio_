@@ -21,6 +21,7 @@ function ParticleBackground() {
     const useMouseInteraction = !isMobile
     const mouseRadius = 120
     const connectionDist = 100
+    const frameInterval = 1000 / 30
 
     canvas.width = width
     canvas.height = height
@@ -81,24 +82,27 @@ function ParticleBackground() {
       particles.push(new Particle())
     }
 
+    /* One path, one stroke for every connection — far cheaper than stroking
+       each line separately. */
     function drawConnections() {
       if (!useConnections) return
+      ctx.beginPath()
       for (let i = 0; i < particles.length; i++) {
+        const a = particles[i]
         for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x
-          const dy = particles[i].y - particles[j].y
+          const b = particles[j]
+          const dx = a.x - b.x
+          const dy = a.y - b.y
           const dist = Math.sqrt(dx * dx + dy * dy)
 
           if (dist < connectionDist) {
-            const alpha = (1 - dist / connectionDist) * 0.15
-            ctx.beginPath()
-            ctx.moveTo(particles[i].x, particles[i].y)
-            ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`
-            ctx.stroke()
+            ctx.moveTo(a.x, a.y)
+            ctx.lineTo(b.x, b.y)
           }
         }
       }
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
+      ctx.stroke()
     }
 
     let paused = false
@@ -107,14 +111,20 @@ function ParticleBackground() {
       if (paused) {
         cancelAnimationFrame(animationId)
       } else {
-        animate()
+        animationId = requestAnimationFrame(animate)
       }
     }
     document.addEventListener('visibilitychange', handleVisibility)
 
-    function animate() {
+    let lastFrame = 0
+    function animate(now) {
       if (paused) return
       animationId = requestAnimationFrame(animate)
+
+      /* The constellation drifts slowly; 30fps is indistinguishable and
+         halves the main-thread cost. */
+      if (now - lastFrame < frameInterval) return
+      lastFrame = now
 
       ctx.clearRect(0, 0, width, height)
 
@@ -126,7 +136,7 @@ function ParticleBackground() {
       drawConnections()
     }
 
-    animate()
+    animationId = requestAnimationFrame(animate)
 
     const handleMouseMove = (e) => {
       mouseX = e.clientX

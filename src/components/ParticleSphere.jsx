@@ -5,8 +5,8 @@ function ParticleSphere({ quality = 'desktop' }) {
   const containerRef = useRef(null)
   const initialized = useRef(false)
 
-  const particleCounts = { tablet: 3000, desktop: 18000 }
-  const PARTICLE_COUNT = particleCounts[quality] || 18000
+  const particleCounts = { tablet: 2500, desktop: 10000 }
+  const PARTICLE_COUNT = particleCounts[quality] || 10000
 
   useEffect(() => {
     if (initialized.current) return
@@ -19,63 +19,66 @@ function ParticleSphere({ quality = 'desktop' }) {
       return
     }
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const init = () => {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    const width = container.clientWidth || 600
-    const height = container.clientHeight || 600
+      const width = container.clientWidth || 600
+      const height = container.clientHeight || 600
 
-    const renderer = new THREE.WebGLRenderer({ antialias: quality === 'desktop', alpha: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
-    renderer.setSize(width, height)
-    renderer.setClearColor(0x000000, 0)
-    container.appendChild(renderer.domElement)
+      const renderer = new THREE.WebGLRenderer({ antialias: quality === 'desktop', alpha: true })
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+      renderer.setSize(width, height)
+      renderer.setClearColor(0x000000, 0)
+      container.appendChild(renderer.domElement)
 
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100)
-    camera.position.z = 3
+      const scene = new THREE.Scene()
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100)
+      camera.position.z = 3
 
-    const positions = new Float32Array(PARTICLE_COUNT * 3)
-    const colors = new Float32Array(PARTICLE_COUNT * 3)
-    const sizes = new Float32Array(PARTICLE_COUNT)
+      const positions = new Float32Array(PARTICLE_COUNT * 3)
+      const colors = new Float32Array(PARTICLE_COUNT * 3)
+      const sizes = new Float32Array(PARTICLE_COUNT)
 
-    const c1 = new THREE.Color(0xf0f0f0)
-    const c2 = new THREE.Color(0x8a8a8a)
-    const c3 = new THREE.Color(0xd0d0d0)
+      /* Plain numbers instead of THREE.Color objects: no allocations in the
+         generation loop. */
+      const c1 = { r: 0xf0 / 255, g: 0xf0 / 255, b: 0xf0 / 255 }
+      const c2 = { r: 0x8a / 255, g: 0x8a / 255, b: 0x8a / 255 }
+      const c3 = { r: 0xd0 / 255, g: 0xd0 / 255, b: 0xd0 / 255 }
 
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(2 * Math.random() - 1)
-      const r = 0.85 + Math.random() * 0.15
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const theta = Math.random() * Math.PI * 2
+        const phi = Math.acos(2 * Math.random() - 1)
+        const r = 0.85 + Math.random() * 0.15
 
-      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta)
-      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
-      positions[i * 3 + 2] = r * Math.cos(phi)
+        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta)
+        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
+        positions[i * 3 + 2] = r * Math.cos(phi)
 
-      const t = i / PARTICLE_COUNT
-      let color
-      if (t < 0.5) color = c1.clone().lerp(c2, t * 2)
-      else color = c2.clone().lerp(c3, (t - 0.5) * 2)
+        const t = i / PARTICLE_COUNT
+        const from = t < 0.5 ? c1 : c2
+        const to = t < 0.5 ? c2 : c3
+        const k = t < 0.5 ? t * 2 : (t - 0.5) * 2
 
-      colors[i * 3] = color.r
-      colors[i * 3 + 1] = color.g
-      colors[i * 3 + 2] = color.b
+        colors[i * 3] = from.r + (to.r - from.r) * k
+        colors[i * 3 + 1] = from.g + (to.g - from.g) * k
+        colors[i * 3 + 2] = from.b + (to.b - from.b) * k
 
-      sizes[i] = 0.012 + Math.random() * 0.012
-    }
+        sizes[i] = 0.012 + Math.random() * 0.012
+      }
 
-    const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1))
+      const geometry = new THREE.BufferGeometry()
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+      geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1))
 
-    const useMouse = quality === 'desktop'
+      const useMouse = quality === 'desktop'
 
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: { value: 0 },
-        ...(useMouse ? { uMouse: { value: new THREE.Vector3(50, 50, 50) } } : {})
-      },
-      vertexShader: `
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          uTime: { value: 0 },
+          ...(useMouse ? { uMouse: { value: new THREE.Vector3(50, 50, 50) } } : {})
+        },
+        vertexShader: `
         attribute float size;
         varying vec3 vColor;
         uniform float uTime;
@@ -111,7 +114,7 @@ function ParticleSphere({ quality = 'desktop' }) {
           gl_Position = projectionMatrix * mvPosition;
         }
       `,
-      fragmentShader: `
+        fragmentShader: `
         varying vec3 vColor;
         void main() {
           float r = length(gl_PointCoord - vec2(0.5));
@@ -120,182 +123,202 @@ function ParticleSphere({ quality = 'desktop' }) {
           gl_FragColor = vec4(vColor * 2.2, alpha);
         }
       `,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      vertexColors: true
-    })
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true
+      })
 
-    const particles = new THREE.Points(geometry, material)
-    scene.add(particles)
+      const particles = new THREE.Points(geometry, material)
+      scene.add(particles)
 
-    const startTime = performance.now()
-    let mouse3D = new THREE.Vector3(50, 50, 50)
-    let isDragging = false
-    let startX = 0
-    let startY = 0
-    let dragRotationY = 0
-    let dragRotationX = 0
-    let returnAnimation = { active: false, startY: 0, startX: 0, progress: 0 }
+      const startTime = performance.now()
+      let mouse3D = new THREE.Vector3(50, 50, 50)
+      let isDragging = false
+      let startX = 0
+      let startY = 0
+      let dragRotationY = 0
+      let dragRotationX = 0
+      let returnAnimation = { active: false, startY: 0, startX: 0, progress: 0 }
 
-    if (useMouse && !reducedMotion) {
-      const handleMouseDown = (e) => {
-        isDragging = true
-        startX = e.clientX
-        startY = e.clientY
-        dragRotationY = particles.rotation.y
-        dragRotationX = particles.rotation.x
-        returnAnimation.active = false
-      }
-
-      const handleMouseMove = (e) => {
-        const rect = container.getBoundingClientRect()
-        const x = ((e.clientX - rect.left) / rect.width) * 2 - 1
-        const y = -((e.clientY - rect.top) / rect.height) * 2 + 1
-
-        const vector = new THREE.Vector3(x, y, 0.5)
-        vector.unproject(camera)
-        const dir = vector.sub(camera.position).normalize()
-        const distance = -camera.position.z / dir.z
-        mouse3D = camera.position.clone().add(dir.multiplyScalar(distance))
-
-        if (isDragging) {
-          const deltaX = e.clientX - startX
-          const deltaY = e.clientY - startY
-          particles.rotation.y = dragRotationY + deltaX * 0.005
-          particles.rotation.x = dragRotationX + deltaY * 0.005
-        }
-      }
-
-      const handleMouseUp = () => {
-        if (isDragging) {
-          isDragging = false
+      if (useMouse && !reducedMotion) {
+        const handleMouseDown = (e) => {
+          isDragging = true
+          startX = e.clientX
+          startY = e.clientY
           dragRotationY = particles.rotation.y
           dragRotationX = particles.rotation.x
-          returnAnimation = {
-            active: true,
-            startY: dragRotationY,
-            startX: dragRotationX,
-            progress: 0
+          returnAnimation.active = false
+        }
+
+        const handleMouseMove = (e) => {
+          const rect = container.getBoundingClientRect()
+          const x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+          const y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+
+          const vector = new THREE.Vector3(x, y, 0.5)
+          vector.unproject(camera)
+          const dir = vector.sub(camera.position).normalize()
+          const distance = -camera.position.z / dir.z
+          mouse3D = camera.position.clone().add(dir.multiplyScalar(distance))
+
+          if (isDragging) {
+            const deltaX = e.clientX - startX
+            const deltaY = e.clientY - startY
+            particles.rotation.y = dragRotationY + deltaX * 0.005
+            particles.rotation.x = dragRotationX + deltaY * 0.005
           }
         }
-      }
 
-      const handleMouseLeave = () => {
-        mouse3D = new THREE.Vector3(50, 50, 50)
-        if (isDragging) {
-          isDragging = false
-          dragRotationY = particles.rotation.y
-          dragRotationX = particles.rotation.x
-          returnAnimation = {
-            active: true,
-            startY: dragRotationY,
-            startX: dragRotationX,
-            progress: 0
+        const handleMouseUp = () => {
+          if (isDragging) {
+            isDragging = false
+            dragRotationY = particles.rotation.y
+            dragRotationX = particles.rotation.x
+            returnAnimation = {
+              active: true,
+              startY: dragRotationY,
+              startX: dragRotationX,
+              progress: 0
+            }
           }
         }
+
+        const handleMouseLeave = () => {
+          mouse3D = new THREE.Vector3(50, 50, 50)
+          if (isDragging) {
+            isDragging = false
+            dragRotationY = particles.rotation.y
+            dragRotationX = particles.rotation.x
+            returnAnimation = {
+              active: true,
+              startY: dragRotationY,
+              startX: dragRotationX,
+              progress: 0
+            }
+          }
+        }
+
+        container.addEventListener('mousedown', handleMouseDown)
+        container.addEventListener('mousemove', handleMouseMove)
+        container.addEventListener('mouseup', handleMouseUp)
+        container.addEventListener('mouseleave', handleMouseLeave)
+        window.addEventListener('mouseup', handleMouseUp)
       }
 
-      container.addEventListener('mousedown', handleMouseDown)
-      container.addEventListener('mousemove', handleMouseMove)
-      container.addEventListener('mouseup', handleMouseUp)
-      container.addEventListener('mouseleave', handleMouseLeave)
-      window.addEventListener('mouseup', handleMouseUp)
-    }
+      const renderFrame = () => {
+        const time = (performance.now() - startTime) / 1000
+        material.uniforms.uTime.value = time
+        if (useMouse) {
+          material.uniforms.uMouse.value.copy(mouse3D)
+        }
 
-    const renderFrame = () => {
-      const time = (performance.now() - startTime) / 1000
-      material.uniforms.uTime.value = time
-      if (useMouse) {
-        material.uniforms.uMouse.value.copy(mouse3D)
-      }
+        if (useMouse) {
+          if (isDragging) {
+            particles.position.y = Math.sin(time * 0.6) * 0.02
+          } else if (returnAnimation.active) {
+            returnAnimation.progress += 0.02
+            const t = Math.min(returnAnimation.progress, 1)
+            const ease = 1 - Math.pow(1 - t, 3)
 
-      if (useMouse) {
-        if (isDragging) {
-          particles.position.y = Math.sin(time * 0.6) * 0.02
-        } else if (returnAnimation.active) {
-          returnAnimation.progress += 0.02
-          const t = Math.min(returnAnimation.progress, 1)
-          const ease = 1 - Math.pow(1 - t, 3)
+            const targetY = time * 0.12
+            const targetX = Math.sin(time * 0.3) * 0.05
 
-          const targetY = time * 0.12
-          const targetX = Math.sin(time * 0.3) * 0.05
+            particles.rotation.y = returnAnimation.startY + (targetY - returnAnimation.startY) * ease
+            particles.rotation.x = returnAnimation.startX + (targetX - returnAnimation.startX) * ease
 
-          particles.rotation.y = returnAnimation.startY + (targetY - returnAnimation.startY) * ease
-          particles.rotation.x = returnAnimation.startX + (targetX - returnAnimation.startX) * ease
-
-          if (t >= 1) {
-            returnAnimation.active = false
+            if (t >= 1) {
+              returnAnimation.active = false
+            }
+          } else {
+            particles.rotation.y = time * 0.12
+            particles.rotation.x = Math.sin(time * 0.3) * 0.05
+            particles.position.y = Math.sin(time * 0.6) * 0.02
           }
         } else {
           particles.rotation.y = time * 0.12
           particles.rotation.x = Math.sin(time * 0.3) * 0.05
           particles.position.y = Math.sin(time * 0.6) * 0.02
         }
+
+        renderer.render(scene, camera)
+      }
+
+      let animationId = 0
+      let running = false
+
+      const loop = () => {
+        animationId = requestAnimationFrame(loop)
+        renderFrame()
+      }
+      const start = () => {
+        if (running || reducedMotion) return
+        running = true
+        loop()
+      }
+      const stop = () => {
+        running = false
+        cancelAnimationFrame(animationId)
+      }
+
+      if (reducedMotion) {
+        particles.rotation.y = 0.6
+        particles.rotation.x = 0.05
+        renderer.render(scene, camera)
       } else {
-        particles.rotation.y = time * 0.12
-        particles.rotation.x = Math.sin(time * 0.3) * 0.05
-        particles.position.y = Math.sin(time * 0.6) * 0.02
+        start()
       }
 
-      renderer.render(scene, camera)
-    }
+      /* Pause the render loop while the sphere is off-screen. */
+      const intersectionObserver = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) start()
+        else stop()
+      })
+      intersectionObserver.observe(container)
 
-    let animationId = 0
-    let running = false
+      const resizeObserver = new ResizeObserver(() => {
+        const w = container.clientWidth
+        const h = container.clientHeight
+        if (w > 0 && h > 0) {
+          camera.aspect = w / h
+          camera.updateProjectionMatrix()
+          renderer.setSize(w, h)
+        }
+      })
+      resizeObserver.observe(container)
 
-    const loop = () => {
-      animationId = requestAnimationFrame(loop)
-      renderFrame()
-    }
-    const start = () => {
-      if (running || reducedMotion) return
-      running = true
-      loop()
-    }
-    const stop = () => {
-      running = false
-      cancelAnimationFrame(animationId)
-    }
-
-    if (reducedMotion) {
-      particles.rotation.y = 0.6
-      particles.rotation.x = 0.05
-      renderer.render(scene, camera)
-    } else {
-      start()
-    }
-
-    /* Pause the render loop while the sphere is off-screen. */
-    const intersectionObserver = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) start()
-      else stop()
-    })
-    intersectionObserver.observe(container)
-
-    const resizeObserver = new ResizeObserver(() => {
-      const w = container.clientWidth
-      const h = container.clientHeight
-      if (w > 0 && h > 0) {
-        camera.aspect = w / h
-        camera.updateProjectionMatrix()
-        renderer.setSize(w, h)
+      return () => {
+        stop()
+        intersectionObserver.disconnect()
+        resizeObserver.disconnect()
+        if (renderer) {
+          renderer.dispose()
+          if (container.contains(renderer.domElement)) {
+            container.removeChild(renderer.domElement)
+          }
+        }
+        if (geometry) geometry.dispose()
+        if (material) material.dispose()
       }
+    }
+
+    /* Building ten thousand particles and compiling shaders is real work;
+       do it once the browser is idle so it never blocks interactivity. */
+    let cancelled = false
+    let cleanup = null
+
+    const schedule = typeof window.requestIdleCallback === 'function'
+      ? (fn) => window.requestIdleCallback(fn, { timeout: 1200 })
+      : (fn) => setTimeout(fn, 100)
+
+    schedule(() => {
+      if (cancelled) return
+      cleanup = init()
     })
-    resizeObserver.observe(container)
 
     return () => {
-      stop()
-      intersectionObserver.disconnect()
-      resizeObserver.disconnect()
-      if (renderer) {
-        renderer.dispose()
-        if (container.contains(renderer.domElement)) {
-          container.removeChild(renderer.domElement)
-        }
-      }
-      if (geometry) geometry.dispose()
-      if (material) material.dispose()
+      cancelled = true
+      if (cleanup) cleanup()
       initialized.current = false
     }
   }, [quality])
