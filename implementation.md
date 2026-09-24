@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — through the contact, footer and navigation work; pending from the owner: Quiz Generator repo visibility, experience entries, the résumé PDF, and chart imagery. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — through the accessibility and motion pass; pending from the owner: Quiz Generator repo visibility, experience entries, the résumé PDF, chart imagery, and the canonical domain choice. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -212,11 +212,11 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 6 — Accessibility and motion hardening
 **Goal:** the accessibility score moves from 3 to 9.
 
-- [ ] Inject axe-core via agent-browser and fix every violation (run on /, /work, /work/:slug, 404).
-- [ ] Keyboard pass: skip link, logical order, focus visible on every control, menu operable with Enter/Escape, no focus traps.
-- [ ] Contrast re-verification against the Phase 1 table; fix stragglers.
-- [ ] Cursor policy (D8) verified; reduced-motion pass (sphere static, no reveals, no cursor).
-- [ ] Landmarks and aria: header/nav/main/footer, `aria-current` on active nav item, image alts, external-link cues.
+- [x] Inject axe-core via agent-browser and fix every violation (run on /, /work, /work/:slug, 404).
+- [x] Keyboard pass: skip link, logical order, focus visible on every control, menu operable with Enter/Escape, no focus traps.
+- [x] Contrast re-verification against the Phase 1 table; fix stragglers.
+- [x] Cursor policy (D8) verified; reduced-motion pass (sphere static, no reveals, no cursor).
+- [x] Landmarks and aria: header/nav/main/footer, `aria-current` on active nav item, image alts, external-link cues.
 
 **Verify:** axe report zero violations; keyboard checklist complete; reduced-motion screenshots.
 
