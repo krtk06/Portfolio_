@@ -56,6 +56,18 @@ function Navbar() {
     return () => observer.disconnect()
   }, [isHome])
 
+  /* Escape closes the mobile menu. */
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false)
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [mobileMenuOpen])
+
   const closeMenu = () => setMobileMenuOpen(false)
 
   const scrollToSection = (sectionId) => {
@@ -87,7 +99,7 @@ function Navbar() {
   }
 
   return (
-    <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
+    <nav className={`nav ${scrolled ? 'scrolled' : ''}`} aria-label="Main">
       <Link to="/" className="nav-brand" onClick={handleHomeClick}>
         <span className="nav-brand-text">krtk</span>
       </Link>
@@ -114,12 +126,14 @@ function Navbar() {
         className={`nav-hamburger ${mobileMenuOpen ? 'open' : ''}`}
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         aria-label="Toggle menu"
+        aria-expanded={mobileMenuOpen}
+        aria-controls="mobile-menu"
       >
         <span></span>
         <span></span>
         <span></span>
       </button>
-      <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
+      <div id="mobile-menu" className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
         {!isHome && (
           <Link to="/" onClick={handleHomeClick}>
             ← Back
