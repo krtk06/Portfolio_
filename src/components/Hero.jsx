@@ -4,17 +4,20 @@ import ExternalLink from './ExternalLink'
 
 const ParticleSphere = lazy(() => import('./ParticleSphere'))
 
+const isSmallScreen = () => window.innerWidth < 768
+const isDesktopQuality = () =>
+  window.innerWidth >= 1280 && !window.matchMedia('(pointer: coarse)').matches
+
 function Hero() {
-  const [isMobile, setIsMobile] = useState(false)
-  const [quality, setQuality] = useState('tablet')
+  /* Resolved synchronously so a phone never even fetches the sphere chunk. */
+  const [isMobile, setIsMobile] = useState(isSmallScreen)
+  const [quality, setQuality] = useState(() => (isDesktopQuality() ? 'desktop' : 'tablet'))
 
   useEffect(() => {
     const checkScreen = () => {
-      const coarsePointer = window.matchMedia('(pointer: coarse)').matches
-      setIsMobile(window.innerWidth < 768)
-      setQuality(window.innerWidth >= 1280 && !coarsePointer ? 'desktop' : 'tablet')
+      setIsMobile(isSmallScreen())
+      setQuality(isDesktopQuality() ? 'desktop' : 'tablet')
     }
-    checkScreen()
     window.addEventListener('resize', checkScreen)
     return () => window.removeEventListener('resize', checkScreen)
   }, [])

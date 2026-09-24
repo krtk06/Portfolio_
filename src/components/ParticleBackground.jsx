@@ -16,12 +16,12 @@ function ParticleBackground() {
     const isMobile = window.innerWidth < 768
     const isTablet = window.innerWidth >= 768 && window.innerWidth <= 1024
 
-    const particleCount = isMobile ? 30 : isTablet ? 60 : 120
+    const particleCount = isMobile ? 30 : isTablet ? 60 : 80
     const useConnections = !isMobile
     const useMouseInteraction = !isMobile
     const mouseRadius = 120
     const connectionDist = 100
-    const frameInterval = 1000 / 30
+    const frameInterval = 1000 / 24
 
     canvas.width = width
     canvas.height = height
@@ -105,12 +105,14 @@ function ParticleBackground() {
       ctx.stroke()
     }
 
+    let started = false
     let paused = false
+
     const handleVisibility = () => {
       paused = document.hidden
       if (paused) {
         cancelAnimationFrame(animationId)
-      } else {
+      } else if (started) {
         animationId = requestAnimationFrame(animate)
       }
     }
@@ -121,8 +123,8 @@ function ParticleBackground() {
       if (paused) return
       animationId = requestAnimationFrame(animate)
 
-      /* The constellation drifts slowly; 30fps is indistinguishable and
-         halves the main-thread cost. */
+      /* The constellation drifts slowly; a low frame rate is
+         indistinguishable and keeps the main thread free. */
       if (now - lastFrame < frameInterval) return
       lastFrame = now
 
@@ -136,7 +138,17 @@ function ParticleBackground() {
       drawConnections()
     }
 
-    animationId = requestAnimationFrame(animate)
+    /* Decorative only — start once the browser is idle so it never competes
+       with the first paint or with interaction. */
+    const schedule = typeof window.requestIdleCallback === 'function'
+      ? (fn) => window.requestIdleCallback(fn, { timeout: 1500 })
+      : (fn) => setTimeout(fn, 150)
+
+    schedule(() => {
+      if (started || document.hidden) return
+      started = true
+      animationId = requestAnimationFrame(animate)
+    })
 
     const handleMouseMove = (e) => {
       mouseX = e.clientX
