@@ -12,20 +12,21 @@ import NotFound from './pages/NotFound'
 function App() {
   return (
     <>
+      <a className="skip-link" href="#main">Skip to content</a>
       <CustomCursor />
       <ParticleBackground />
       <div className="hero-fade"></div>
       <div className="hero-fade-top"></div>
       <Navbar />
       <ScrollManager />
-      <div className="main-content">
+      <main id="main" className="main-content" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/work" element={<Work />} />
           <Route path="/work/:slug" element={<WorkDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </div>
+      </main>
       <Footer />
     </>
   )

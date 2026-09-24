@@ -157,7 +157,7 @@ function ParticleBackground() {
   }, [])
 
   return (
-    <div id="canvas-bg">
+    <div id="canvas-bg" aria-hidden="true">
       <canvas ref={canvasRef} id="particleCanvas"></canvas>
     </div>
   )
