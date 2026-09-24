@@ -29,9 +29,9 @@ export default function WorkDetail() {
           ))}
         </ul>
 
-        {(project.repo || project.live) && (
+        {(project.live || project.repo) && (
           <div className="work-detail-links">
-            {project.live && (
+            {project.live ? (
               <a
                 href={project.live}
                 className="btn-primary"
@@ -40,8 +40,17 @@ export default function WorkDetail() {
               >
                 <span>Live demo</span>
               </a>
+            ) : (
+              <a
+                href={project.repo}
+                className="btn-primary"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>View on GitHub</span>
+              </a>
             )}
-            {project.repo && (
+            {project.live && project.repo && (
               <a
                 href={project.repo}
                 className="btn-secondary"
