@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { projects, getProject } from '../content/projects'
+import ExternalLink from '../components/ExternalLink'
 import NotFound from './NotFound'
 
 export default function WorkDetail() {
@@ -32,33 +33,18 @@ export default function WorkDetail() {
         {(project.live || project.repo) && (
           <div className="work-detail-links">
             {project.live ? (
-              <a
-                href={project.live}
-                className="btn-primary"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <ExternalLink href={project.live} className="btn-primary">
                 <span>Live demo</span>
-              </a>
+              </ExternalLink>
             ) : (
-              <a
-                href={project.repo}
-                className="btn-primary"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <ExternalLink href={project.repo} className="btn-primary">
                 <span>View on GitHub</span>
-              </a>
+              </ExternalLink>
             )}
             {project.live && project.repo && (
-              <a
-                href={project.repo}
-                className="btn-secondary"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <ExternalLink href={project.repo} className="btn-secondary">
                 <span>Source code</span>
-              </a>
+              </ExternalLink>
             )}
           </div>
         )}

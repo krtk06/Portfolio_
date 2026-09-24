@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { person } from '../content/site'
+import ExternalLink from './ExternalLink'
 
 const ParticleSphere = lazy(() => import('./ParticleSphere'))
 
@@ -49,14 +50,9 @@ function Hero() {
                 <path d="M3 8h10M9 4l4 4-4 4" />
               </svg>
             </a>
-            <a
-              href={person.links.resume}
-              className="btn-secondary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <ExternalLink href={person.links.resume} className="btn-secondary">
               <span>Download Résumé</span>
-            </a>
+            </ExternalLink>
           </div>
         </div>
         {!isMobile && (

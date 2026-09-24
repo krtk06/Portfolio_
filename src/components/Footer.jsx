@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { person } from '../content/site'
+import ExternalLink from './ExternalLink'
 
 function Footer() {
   const year = new Date().getFullYear()
@@ -20,9 +21,9 @@ function Footer() {
           <Link to="/#contact">Contact</Link>
         </nav>
         <div className="footer-socials">
-          <a href={person.links.github} target="_blank" rel="noopener noreferrer">GitHub</a>
-          <a href={person.links.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <a href={person.links.resume} target="_blank" rel="noopener noreferrer">Résumé</a>
+          <ExternalLink href={person.links.github}>GitHub</ExternalLink>
+          <ExternalLink href={person.links.linkedin}>LinkedIn</ExternalLink>
+          <ExternalLink href={person.links.resume}>Résumé</ExternalLink>
         </div>
       </div>
       <div className="footer-bottom">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { person } from '../content/site'
+import ExternalLink from './ExternalLink'
 
 const sections = [
   { id: 'work', label: 'Work' },
@@ -120,7 +121,7 @@ function Navbar() {
             {label}
           </a>
         ))}
-        <a href={person.links.resume} target="_blank" rel="noopener noreferrer">Résumé</a>
+        <ExternalLink href={person.links.resume}>Résumé</ExternalLink>
       </div>
       <button
         className={`nav-hamburger ${mobileMenuOpen ? 'open' : ''}`}
@@ -144,7 +145,7 @@ function Navbar() {
             {label}
           </Link>
         ))}
-        <a href={person.links.resume} target="_blank" rel="noopener noreferrer">Résumé</a>
+        <ExternalLink href={person.links.resume}>Résumé</ExternalLink>
       </div>
     </nav>
   )
