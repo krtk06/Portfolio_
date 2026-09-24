@@ -642,7 +642,6 @@ body.has-custom-cursor {
   border: 1px solid var(--line);
   border-radius: var(--radius-tile);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
   overflow: hidden;
 }
 .skill-card::before {
@@ -782,6 +781,19 @@ body.has-custom-cursor {
   color: var(--text-muted);
 }
 
+.skill-groups {
+  display: grid;
+  gap: var(--space-8);
+}
+.skill-group-label {
+  font-size: var(--type-micro);
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-4);
+}
+
 /* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
@@ -816,7 +828,7 @@ body.has-custom-cursor {
     flex-wrap: wrap;
     justify-content: center;
   }
-  .skills-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+  .skills-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
   .skill-card { padding: var(--space-3) 10px; }
   .skill-card-logo { width: 52px; height: 52px; }
   .footer {
