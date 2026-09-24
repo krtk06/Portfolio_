@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — project links and two new projects added from the GitHub profile; chart material and case-study narrative still pending from the owner. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — work curation and the skills/about/contact sections are built; pending from the owner: Quiz Generator repo visibility, experience entries, the résumé PDF, and chart imagery. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -191,11 +191,11 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 4 — Skills, About, Experience, Résumé
 **Goal:** the supporting evidence hiring managers scan for.
 
-- [ ] Skills: grouped and data-weighted (Modeling: Python, Pandas, NumPy, scikit-learn, Matplotlib / Data & Infra: SQL, MongoDB, AWS, Docker, Git / Apps: React, Node, JavaScript, TypeScript). Labels ≥ 12px and ≥ 4.5:1.
-- [ ] About: 2–3 short paragraphs (what you do, how you work, current focus).
-- [ ] Experience: real entries or hidden entirely (owner supplies company/title/dates/bullets, or confirms none).
+- [x] Skills: grouped and data-weighted (Modeling: Python, Pandas, NumPy, scikit-learn, Matplotlib / Data & Infra: SQL, MongoDB, AWS, Docker, Git / Apps: React, Node, JavaScript, TypeScript). Labels ≥ 12px and ≥ 4.5:1.
+- [x] About: 2–3 short paragraphs (what you do, how you work, current focus).
+- [x] Experience: real entries or hidden entirely (owner supplies company/title/dates/bullets, or confirms none).
 - [ ] Résumé: self-host `/resume.pdf` (recommended over Google Drive), linked from nav, hero, and contact.
-- [ ] Display the email address as text with a copy-to-clipboard button.
+- [x] Display the email address as text with a copy-to-clipboard button.
 
 **Verify:** content checklist (section 6) fully ticked; nothing placeholder-shaped on the page.
 
