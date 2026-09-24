@@ -831,6 +831,36 @@ body.has-custom-cursor {
   margin-bottom: var(--space-2);
 }
 
+.contact-email-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+.contact-email {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  color: var(--text);
+  text-decoration: none;
+}
+.contact-email:hover {
+  color: var(--text-secondary);
+}
+.contact-copy {
+  font-size: var(--type-micro);
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition: color var(--dur-micro), border-color var(--dur-micro);
+}
+.contact-copy:hover {
+  color: var(--text);
+  border-color: var(--text-faint);
+}
+
 /* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */

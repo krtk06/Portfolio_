@@ -1,8 +1,21 @@
+import { useState } from 'react'
 import { person } from '../content/site'
 
 function Contact() {
+  const [copied, setCopied] = useState(false)
+
   const handleReachOut = () => {
     window.location.href = `mailto:${person.links.email}`
+  }
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(person.links.email)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* Clipboard access can be blocked; the mailto link still works. */
+    }
   }
 
   return (
@@ -18,6 +31,14 @@ function Contact() {
         <p className="contact-text">
           I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision.
         </p>
+        <div className="contact-email-row">
+          <a className="contact-email" href={`mailto:${person.links.email}`}>
+            {person.links.email}
+          </a>
+          <button className="contact-copy" type="button" onClick={handleCopy}>
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
         <div className="contact-socials">
           <button className="contact-social" aria-label="Email" onClick={handleReachOut}>
             <svg viewBox="0 0 24 24">

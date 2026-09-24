@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { person } from '../content/site'
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -65,6 +66,7 @@ function Navbar() {
         <a href="#work" onClick={(e) => handleNavClick(e, 'work')}>Work</a>
         <a href="#skills" onClick={(e) => handleNavClick(e, 'skills')}>Skills</a>
         <a href="#contact" onClick={(e) => handleNavClick(e, 'contact')}>Contact</a>
+        <a href={person.links.resume} target="_blank" rel="noopener noreferrer">Résumé</a>
       </div>
       <button
         className={`nav-hamburger ${mobileMenuOpen ? 'open' : ''}`}
@@ -84,6 +86,7 @@ function Navbar() {
         <Link to="/" onClick={(e) => handleNavClick(e, 'work')}>Work</Link>
         <Link to="/" onClick={(e) => handleNavClick(e, 'skills')}>Skills</Link>
         <Link to="/" onClick={(e) => handleNavClick(e, 'contact')}>Contact</Link>
+        <a href={person.links.resume} target="_blank" rel="noopener noreferrer">Résumé</a>
       </div>
     </nav>
   )
