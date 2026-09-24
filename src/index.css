@@ -713,9 +713,6 @@ body.has-custom-cursor {
   margin-top: var(--space-6);
   margin-bottom: var(--space-8);
 }
-.reach-out-btn {
-  margin-top: var(--space-6);
-}
 .contact-socials {
   display: flex;
   gap: var(--space-4);
@@ -835,6 +832,7 @@ body.has-custom-cursor {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  margin-top: var(--space-8);
   margin-bottom: var(--space-6);
 }
 .contact-email {

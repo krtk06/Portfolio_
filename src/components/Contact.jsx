@@ -25,12 +25,12 @@ function Contact() {
         <h2 className="section-heading">
           Get In <span className="thin">Touch</span>
         </h2>
-        <button className="btn-secondary reach-out-btn" onClick={handleReachOut}>
-          <span>Reach Out</span>
-        </button>
         <p className="contact-text">
           I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision.
         </p>
+        <button className="btn-secondary" onClick={handleReachOut}>
+          <span>Reach Out</span>
+        </button>
         <div className="contact-email-row">
           <a className="contact-email" href={`mailto:${person.links.email}`}>
             {person.links.email}
