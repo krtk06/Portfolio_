@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — through the accessibility and motion pass; pending from the owner: Quiz Generator repo visibility, experience entries, the résumé PDF, chart imagery, and the canonical domain choice. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — through performance and SEO; pending from the owner: Quiz Generator repo visibility, experience entries, the résumé PDF, and chart imagery. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -87,7 +87,7 @@ Verified defects on production (full evidence list in Appendix A):
 - **D8 — Cursor.** Keep the custom cursor on fine pointers, with guardrails: disabled under reduced-motion, never over form fields, no hover-growth on non-clickable elements (or make those elements clickable).
 - **D9 — Build artifacts.** `dist/` stops being tracked; add to `.gitignore` along with tooling dirs.
 - **D10 — Deployment.** Merge to `main` only at Phase 8 with owner sign-off. Verify on krtk06.vercel.app and krtk.xyz afterwards.
-- **D11 — Canonical domain.** `krtk.xyz`. The current `krtk.xyz → www.krtk.xyz` redirect gets a deliberate resolution in Phase 7 (pick one canonical host; redirect the other).
+- **D11 — Canonical domain (resolved).** Canonical is `https://www.krtk.xyz` — the host that serves content today (the apex currently redirects to www). If the Vercel domain setting is flipped to prefer the apex, update `site.url` in `src/content/site.js` and the defaults in `index.html`; that is the only change needed.
 - **D12 — Execution workflow.** One phase at a time, with an owner review stop after every phase. Commits per meaningful step as `feat: / fix: / update: / chore:` plus a one-line description, with no phase or step numbers in messages. Missing information is raised as a question, never filled in by assumption.
 - **D13 — GitHub profile.** `github.com/krtk06` is the real account (verified via the GitHub API and the authenticated `gh` CLI). The old `github.com/krtk2` link on the live site 404s; every repository link now points at `github.com/krtk06`.
 - **D14 — Project link defaults.** Until a real `live` URL exists, the primary button on a case study points at the repository, labelled View on GitHub; supplying a `live` URL switches it to Live demo with Source code beside it. The owner will update the live URLs later.
@@ -223,12 +223,12 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 7 — Performance and SEO
 **Goal:** the technical score moves from 4 to 9.
 
-- [ ] Code-split routes + lazy sphere; verify first-load JS ≤ 250 KB gzip; remove unused CSS.
-- [ ] Lighthouse mobile and desktop runs; fix until ≥ 95/100/100/100.
-- [ ] Per-route metadata via `usePageMeta()`: title, description, canonical, OG/Twitter; generate a real `og-image.png` (1200×630).
-- [ ] `robots.txt`, `sitemap.xml` (all routes), JSON-LD `Person`, `theme-color`.
-- [ ] Canonical host decision (D11): pick `krtk.xyz` or `www.krtk.xyz`, configure the redirect, set canonicals accordingly.
-- [ ] Cache headers for assets; verify font loading strategy.
+- [x] Code-split routes + lazy sphere; verify first-load JS ≤ 250 KB gzip; remove unused CSS.
+- [x] Lighthouse mobile and desktop runs; fix until ≥ 95/100/100/100.
+- [x] Per-route metadata via `usePageMeta()`: title, description, canonical, OG/Twitter; generate a real `og-image.png` (1200×630).
+- [x] `robots.txt`, `sitemap.xml` (all routes), JSON-LD `Person`, `theme-color`.
+- [x] Canonical host decision (D11): pick `krtk.xyz` or `www.krtk.xyz`, configure the redirect, set canonicals accordingly.
+- [x] Cache headers for assets; verify font loading strategy.
 
 **Verify:** Lighthouse reports (both form factors); OG preview check; sitemap lists every project URL.
 
