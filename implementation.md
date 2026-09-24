@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — work curation and the skills/about/contact sections are built; pending from the owner: Quiz Generator repo visibility, experience entries, the résumé PDF, and chart imagery. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — through the contact, footer and navigation work; pending from the owner: Quiz Generator repo visibility, experience entries, the résumé PDF, and chart imagery. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -202,10 +202,10 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 5 — Contact, footer, and navigation chrome
 **Goal:** the closing sections and the persistent frame.
 
-- [ ] Contact section order: heading → short blurb → primary action → email text → social icons.
-- [ ] Footer: visible (defect 3), real content — name, nav links, email, socials, copyright with current year.
-- [ ] Navbar: scrolled state working (defect 4), active-section indication, résumé link as text, mobile menu behavior verified (links scroll and close the menu).
-- [ ] NotFound page for unknown routes (styled, links home).
+- [x] Contact section order: heading → short blurb → primary action → email text → social icons.
+- [x] Footer: visible (defect 3), real content — name, nav links, email, socials, copyright with current year.
+- [x] Navbar: scrolled state working (defect 4), active-section indication, résumé link as text, mobile menu behavior verified (links scroll and close the menu).
+- [x] NotFound page for unknown routes (styled, links home).
 
 **Verify:** nav walkthrough on desktop and mobile; footer visible at both ends of every page; 404 route renders.
 
