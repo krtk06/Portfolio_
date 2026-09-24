@@ -2,9 +2,16 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { person } from '../content/site'
 
+const sections = [
+  { id: 'work', label: 'Work' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'contact', label: 'Contact' },
+]
+
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState('')
   const location = useLocation()
   const navigate = useNavigate()
   const isHome = location.pathname === '/'
@@ -21,6 +28,33 @@ function Navbar() {
     window.addEventListener('scroll', handleScroll, { passive: true, capture: true })
     return () => window.removeEventListener('scroll', handleScroll, { capture: true })
   }, [])
+
+  /* Highlight the section currently in view. */
+  useEffect(() => {
+    if (!isHome) {
+      setActiveSection('')
+      return
+    }
+
+    const elements = sections
+      .map(({ id }) => document.getElementById(id))
+      .filter(Boolean)
+
+    if (!elements.length) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        if (visible.length) setActiveSection(visible[0].target.id)
+      },
+      { rootMargin: '-45% 0px -45% 0px' }
+    )
+
+    elements.forEach((element) => observer.observe(element))
+    return () => observer.disconnect()
+  }, [isHome])
 
   const closeMenu = () => setMobileMenuOpen(false)
 
@@ -63,9 +97,17 @@ function Navbar() {
             ← Back
           </Link>
         )}
-        <a href="#work" onClick={(e) => handleNavClick(e, 'work')}>Work</a>
-        <a href="#skills" onClick={(e) => handleNavClick(e, 'skills')}>Skills</a>
-        <a href="#contact" onClick={(e) => handleNavClick(e, 'contact')}>Contact</a>
+        {sections.map(({ id, label }) => (
+          <a
+            key={id}
+            href={`#${id}`}
+            className={activeSection === id ? 'active' : undefined}
+            aria-current={activeSection === id ? 'true' : undefined}
+            onClick={(e) => handleNavClick(e, id)}
+          >
+            {label}
+          </a>
+        ))}
         <a href={person.links.resume} target="_blank" rel="noopener noreferrer">Résumé</a>
       </div>
       <button
@@ -83,9 +125,11 @@ function Navbar() {
             ← Back
           </Link>
         )}
-        <Link to="/" onClick={(e) => handleNavClick(e, 'work')}>Work</Link>
-        <Link to="/" onClick={(e) => handleNavClick(e, 'skills')}>Skills</Link>
-        <Link to="/" onClick={(e) => handleNavClick(e, 'contact')}>Contact</Link>
+        {sections.map(({ id, label }) => (
+          <Link key={id} to="/" onClick={(e) => handleNavClick(e, id)}>
+            {label}
+          </Link>
+        ))}
         <a href={person.links.resume} target="_blank" rel="noopener noreferrer">Résumé</a>
       </div>
     </nav>
