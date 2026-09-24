@@ -90,6 +90,7 @@ Verified defects on production (full evidence list in Appendix A):
 - **D11 — Canonical domain.** `krtk.xyz`. The current `krtk.xyz → www.krtk.xyz` redirect gets a deliberate resolution in Phase 7 (pick one canonical host; redirect the other).
 - **D12 — Execution workflow.** One phase at a time, with an owner review stop after every phase. Commits per meaningful step as `feat: / fix: / update: / chore:` plus a one-line description, with no phase or step numbers in messages. Missing information is raised as a question, never filled in by assumption.
 - **D13 — GitHub profile.** `github.com/krtk06` is the real account (verified via the GitHub API and the authenticated `gh` CLI). The old `github.com/krtk2` link on the live site 404s; every repository link now points at `github.com/krtk06`.
+- **D14 — Project link defaults.** Until a real `live` URL exists, the primary button on a case study points at the repository, labelled View on GitHub; supplying a `live` URL switches it to Live demo with Source code beside it. The owner will update the live URLs later.
 - **Open decisions** (each resolved by asking the owner when its phase arrives): résumé hosting (recommend `/resume.pdf` self-hosted, drop Google Drive), whether to add Geist Mono for data labels, experience content (real entries or hide the section).
 
 ## 4. Architecture and technical decisions
