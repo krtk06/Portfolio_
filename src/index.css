@@ -750,21 +750,18 @@ body.has-custom-cursor {
   z-index: 20;
   background: var(--bg);
   border-top: 1px solid var(--line);
-  padding: var(--space-8) var(--gutter);
+  padding: var(--space-12) var(--gutter) var(--space-8);
+}
+.footer-top {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: var(--space-8);
+  margin-bottom: var(--space-8);
 }
-.footer-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.footer-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--text-faint);
-  border-radius: 50%;
+.footer-brand-block {
+  display: grid;
+  gap: var(--space-2);
 }
 .footer-brand {
   font-size: var(--type-micro);
@@ -773,9 +770,46 @@ body.has-custom-cursor {
   letter-spacing: 2px;
   text-transform: uppercase;
 }
-.footer-right {
+.footer-name {
+  font-size: var(--type-small);
+  color: var(--text-muted);
+}
+.footer-nav,
+.footer-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+}
+.footer-nav a,
+.footer-socials a {
+  font-size: var(--type-small);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--dur-micro);
+}
+.footer-nav a:hover,
+.footer-socials a:hover {
+  color: var(--text);
+}
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-6);
+}
+.footer-copy,
+.footer-email {
   font-size: var(--type-micro);
   color: var(--text-muted);
+}
+.footer-email {
+  text-decoration: none;
+  transition: color var(--dur-micro);
+}
+.footer-email:hover {
+  color: var(--text);
 }
 
 .skill-groups {
@@ -896,12 +930,6 @@ body.has-custom-cursor {
   .skills-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
   .skill-card { padding: var(--space-3) 10px; }
   .skill-card-logo { width: 52px; height: 52px; }
-  .footer {
-    padding: var(--space-8) var(--gutter);
-    flex-direction: column;
-    gap: var(--space-4);
-    align-items: flex-start;
-  }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
