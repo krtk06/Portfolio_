@@ -10,7 +10,7 @@ export const person = {
   tagline: 'Concept. Code. Deployment.',
   proofLine: '110k+ records analysed • Python • React • Vercel',
   links: {
-    github: 'https://github.com/krtk2',
+    github: 'https://github.com/krtk06',
     linkedin: 'https://linkedin.com/in/kartheek-nistala',
     email: 'krtk2805@gmail.com',
     resume:
