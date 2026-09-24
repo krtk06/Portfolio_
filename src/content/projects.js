@@ -1,11 +1,12 @@
 /**
  * Projects — the only place project content lives.
  *
- * `repo` and `live` are null until the real URLs are supplied; a null link
- * simply does not render, so nothing placeholder-shaped ever ships.
+ * Every project carries a repo link; `live` is null where nothing is deployed
+ * publicly and the Live demo button simply does not render.
  *
- * The case-study bodies are a restructure of the copy currently on the live
- * site; expand them with the fuller narrative when the material arrives.
+ * Descriptions and case-study bodies are derived from the repositories and
+ * their READMEs; expand them with the fuller narrative when the material
+ * arrives (charts, deeper results).
  */
 
 export const projects = [
@@ -21,7 +22,7 @@ export const projects = [
     imageWidth: 1018,
     imageHeight: 483,
     imageAlt: 'Spotify analysis cover with Python, Pandas and scikit-learn logos',
-    repo: null,
+    repo: 'https://github.com/krtk06/Spotify-Analysis',
     live: null,
     featured: true,
     detail: {
@@ -41,6 +42,35 @@ export const projects = [
     },
   },
   {
+    slug: 'resume-analyzer',
+    title: 'Resume Analyzer',
+    category: 'Machine Learning',
+    description:
+      'AI-powered resume analysis: upload a PDF or DOCX, pick a target role, and get a match score out of 10 with alternative role suggestions and concrete improvement areas.',
+    outcome: 'Match scoring out of 10 • live demo',
+    tags: ['Python', 'FastAPI', 'spaCy', 'React'],
+    image: '/images/resume-analyzer.webp',
+    imageWidth: 1280,
+    imageHeight: 640,
+    imageAlt: 'Resume Analyzer cover with Python, FastAPI, spaCy and React',
+    repo: 'https://github.com/krtk06/ResumeAnalysis',
+    live: 'https://resume-analysis-ruddy.vercel.app',
+    featured: true,
+    detail: {
+      problem: [
+        'Job seekers cannot easily tell how well a resume matches a specific role, or which parts of it are holding the application back.',
+      ],
+      approach: [
+        'Built the backend in FastAPI with spaCy and sentence-transformers to extract skills, education and years of experience.',
+        'Scored resumes out of 10 by combining semantic similarity with keyword matching against the target role.',
+        'Added alternative role suggestions and per-section improvement areas, with a React front end and drag-and-drop upload.',
+      ],
+      results: [
+        'Live at resume-analysis-ruddy.vercel.app: uploads a PDF or DOCX and returns a scored result with improvement areas.',
+      ],
+    },
+  },
+  {
     slug: 'chaty-ai-chat-assistant',
     title: 'Chaty — AI Chat Assistant',
     category: 'Full Stack',
@@ -52,8 +82,8 @@ export const projects = [
     imageWidth: 1280,
     imageHeight: 600,
     imageAlt: 'Chaty cover with React, JavaScript and Stripe logos',
-    repo: null,
-    live: null,
+    repo: 'https://github.com/krtk06/Chaty',
+    live: 'https://chaty-krtk.vercel.app/',
     featured: true,
     detail: {
       problem: [
@@ -82,9 +112,9 @@ export const projects = [
     imageWidth: 1280,
     imageHeight: 616,
     imageAlt: 'Uber cancellation analysis cover with Python, Pandas and Seaborn logos',
-    repo: null,
+    repo: 'https://github.com/krtk06/Uber-Analysis',
     live: null,
-    featured: true,
+    featured: false,
     detail: {
       problem: [
         'Rides fail for two different reasons: driver cancellations and genuine cab unavailability. The goal was to measure each and see where they overlap.',
@@ -96,6 +126,35 @@ export const projects = [
       ],
       results: [
         'Demand-supply gaps accounted for 70%+ of failed rides.',
+      ],
+    },
+  },
+  {
+    slug: 'codetrack-pro',
+    title: 'CodeTrack Pro',
+    category: 'Full Stack',
+    description:
+      'Dashboard that pulls LeetCode, Codeforces and GitHub activity into one view: topic strengths, daily streaks, contest trends, mock interviews and job applications.',
+    outcome: 'Three platforms unified in one dashboard',
+    tags: ['TypeScript', 'React', 'Prisma', 'Docker'],
+    image: '/images/codetrack.webp',
+    imageWidth: 1280,
+    imageHeight: 640,
+    imageAlt: 'CodeTrack Pro cover with TypeScript, React, Prisma and Docker',
+    repo: 'https://github.com/krtk06/codetrack',
+    live: null,
+    featured: false,
+    detail: {
+      problem: [
+        'Interview prep is fragmented: problems on LeetCode, contests on Codeforces, code on GitHub and applications in a spreadsheet — so the real patterns stay hidden.',
+      ],
+      approach: [
+        'Connected LeetCode, Codeforces and GitHub (with manual CodeChef import) into a single dashboard.',
+        'Surfaced topic-level strengths, daily streaks and contest trends, with mock-interview and job-application tracking alongside.',
+        'Built as a TypeScript monorepo: React front end with charts, a Prisma-backed API, and Docker for local services.',
+      ],
+      results: [
+        'One dashboard replacing the spreadsheet; the full product spec ships in the repository as CodeTrack-Pro-PRD.md.',
       ],
     },
   },
