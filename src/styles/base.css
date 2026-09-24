@@ -16,6 +16,24 @@
   font-display: swap;
 }
 
+/* Self-hosted, so the fonts arrive with the page instead of a third-party
+   round trip. Geist is one variable file covering every weight we use. */
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/fonts/instrument-serif-latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 html,
 body {
   width: 100%;
