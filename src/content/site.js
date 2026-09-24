@@ -22,3 +22,9 @@ export const person = {
       'https://drive.google.com/file/d/1ffmAjDZHEqA8k9MBI7XUOeU7omt2u6uW/view?usp=sharing',
   },
 }
+
+export const site = {
+  url: 'https://www.krtk.xyz',
+  description:
+    'Data Scientist / Data Engineer in Hyderabad — 110k+ records analysed across analysis notebooks and deployed AI apps, with case studies, live demos and source code.',
+}

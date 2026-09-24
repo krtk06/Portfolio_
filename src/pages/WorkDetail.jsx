@@ -1,11 +1,20 @@
 import { Link, useParams } from 'react-router-dom'
 import { projects, getProject } from '../content/projects'
 import ExternalLink from '../components/ExternalLink'
+import usePageMeta from '../lib/usePageMeta'
 import NotFound from './NotFound'
 
 export default function WorkDetail() {
   const { slug } = useParams()
   const project = getProject(slug)
+
+  usePageMeta({
+    title: project ? project.title : undefined,
+    description: project ? project.description : undefined,
+    path: `/work/${slug}`,
+    type: 'article',
+    enabled: Boolean(project),
+  })
 
   if (!project) return <NotFound />
 
