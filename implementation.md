@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: in progress — work pages built; project links, extra projects and chart material pending from the owner. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: in progress — project links and two new projects added from the GitHub profile; chart material and case-study narrative still pending from the owner. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -89,7 +89,7 @@ Verified defects on production (full evidence list in Appendix A):
 - **D10 — Deployment.** Merge to `main` only at Phase 8 with owner sign-off. Verify on krtk06.vercel.app and krtk.xyz afterwards.
 - **D11 — Canonical domain.** `krtk.xyz`. The current `krtk.xyz → www.krtk.xyz` redirect gets a deliberate resolution in Phase 7 (pick one canonical host; redirect the other).
 - **D12 — Execution workflow.** One phase at a time, with an owner review stop after every phase. Commits per meaningful step as `feat: / fix: / update: / chore:` plus a one-line description, with no phase or step numbers in messages. Missing information is raised as a question, never filled in by assumption.
-- **D13 — GitHub profile.** `github.com/krtk2` is the correct profile (confirmed during the work-page build); the live value was kept and no parked-branch handle survives.
+- **D13 — GitHub profile.** `github.com/krtk06` is the real account (verified via the GitHub API and the authenticated `gh` CLI). The old `github.com/krtk2` link on the live site 404s; every repository link now points at `github.com/krtk06`.
 - **Open decisions** (each resolved by asking the owner when its phase arrives): résumé hosting (recommend `/resume.pdf` self-hosted, drop Google Drive), whether to add Geist Mono for data labels, experience content (real entries or hide the section).
 
 ## 4. Architecture and technical decisions
@@ -178,7 +178,7 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 ### Phase 3 — Work section and case studies
 **Goal:** every project is explorable, linked, and proven.
 
-- [ ] `src/content/projects.js` with 4+ projects: slug, category, description, outcome token, tags, repo, live, featured, detail { problem, approach, results }. No placeholders ship.
+- [x] `src/content/projects.js` with 4+ projects: slug, category, description, outcome token, tags, repo, live, featured, detail { problem, approach, results }. No placeholders ship.
 - [ ] Home: "Selected Projects" grid — 4 featured cards, real imagery (charts/screenshots provided by owner, processed to WebP with dimensions), outcome line visible on the card, tag chips.
 - [x] `/work` index: all projects; simple category grouping; "All projects" entry point from home.
 - [x] `/work/:slug` case study: problem → approach → results, images with captions, repo/live links (hidden when null), prev/next navigation.
