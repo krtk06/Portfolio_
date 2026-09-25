@@ -209,8 +209,8 @@ function ParticleField() {
           const distance = -camera.position.z / dir.z
           mouse3D = camera.position.clone().add(dir.multiplyScalar(distance))
         }
-        container.addEventListener('mousemove', handleMouseMove)
-        container.__removeMouseMove = () => container.removeEventListener('mousemove', handleMouseMove)
+        document.addEventListener('mousemove', handleMouseMove)
+        container.__removeMouseMove = () => document.removeEventListener('mousemove', handleMouseMove)
       }
 
       let animationId = 0
