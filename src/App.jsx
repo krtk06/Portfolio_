@@ -1,6 +1,7 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ParticleField from './components/ParticleField'
 import ParticleBackground from './components/ParticleBackground'
 import CustomCursor from './components/CustomCursor'
 import ScrollManager from './lib/scroll'
@@ -10,11 +11,14 @@ import WorkDetail from './pages/WorkDetail'
 import NotFound from './pages/NotFound'
 
 function App() {
+  const location = useLocation()
+  const isHome = location.pathname === '/'
+
   return (
     <>
       <a className="skip-link" href="#main">Skip to content</a>
       <CustomCursor />
-      <ParticleBackground />
+      {isHome ? <ParticleField /> : <ParticleBackground />}
       <div className="hero-fade"></div>
       <div className="hero-fade-top"></div>
       <Navbar />

@@ -1,27 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
 import { person } from '../content/site'
 import ExternalLink from './ExternalLink'
 
-const ParticleSphere = lazy(() => import('./ParticleSphere'))
-
-const isSmallScreen = () => window.innerWidth < 768
-const isDesktopQuality = () =>
-  window.innerWidth >= 1280 && !window.matchMedia('(pointer: coarse)').matches
-
 function Hero() {
-  /* Resolved synchronously so a phone never even fetches the sphere chunk. */
-  const [isMobile, setIsMobile] = useState(isSmallScreen)
-  const [quality, setQuality] = useState(() => (isDesktopQuality() ? 'desktop' : 'tablet'))
-
-  useEffect(() => {
-    const checkScreen = () => {
-      setIsMobile(isSmallScreen())
-      setQuality(isDesktopQuality() ? 'desktop' : 'tablet')
-    }
-    window.addEventListener('resize', checkScreen)
-    return () => window.removeEventListener('resize', checkScreen)
-  }, [])
-
   const handleScroll = (e, targetId) => {
     e.preventDefault()
     const element = document.getElementById(targetId)
@@ -36,7 +16,7 @@ function Hero() {
     <section className="hero" id="hero">
       <div className="hero-content">
         <div className="hero-text">
-          <p className="hero-eyebrow">{person.tagline}</p>
+          <p className="figure-label">Fig. 00 — Concept · Code · Deployment</p>
           <h1 className="hero-h1">
             {firstName}<br /><span className="highlight">{lastName}</span>
           </h1>
@@ -58,13 +38,6 @@ function Hero() {
             </ExternalLink>
           </div>
         </div>
-        {!isMobile && (
-          <div className="hero-sphere">
-            <Suspense fallback={null}>
-              <ParticleSphere quality={quality} />
-            </Suspense>
-          </div>
-        )}
       </div>
     </section>
   )
