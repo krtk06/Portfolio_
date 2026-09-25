@@ -21,6 +21,7 @@
   /* Type */
   --font-display: "Instrument Serif", Georgia, serif;
   --font-sans: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
   --font-brand: "Molen Friend", Georgia, serif;
 
   --type-hero: clamp(44px, 8.5vw, 96px); /* hero name — locked in with the hero comp review */

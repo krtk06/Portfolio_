@@ -6,7 +6,7 @@ function Skills() {
   return (
     <section className="section section-skills" id="skills">
       <div className="section-inner">
-        <div className="section-label">Skills</div>
+        <p className="figure-label">Fig. 04 — Capability map</p>
         <h2 className="section-heading">
           Technical <span className="thin">Skills</span>
         </h2>

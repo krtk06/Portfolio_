@@ -327,9 +327,10 @@ body.has-custom-cursor {
   color: var(--text-muted);
 }
 .hero-proof {
-  font-size: var(--type-small);
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
   color: var(--text-muted);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   margin-bottom: var(--space-6);
   opacity: 0;
   animation: fadeInUp 0.7s 0.95s forwards;
@@ -917,6 +918,27 @@ body.has-custom-cursor {
 }
 .skip-link:focus-visible {
   transform: translateY(0);
+}
+
+.figure-label {
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-4);
+}
+.figure-label::after {
+  content: "";
+  display: block;
+  width: 64px;
+  border-top: 1px dashed var(--line-strong);
+  margin-top: var(--space-3);
+}
+.data-caption {
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------------ */

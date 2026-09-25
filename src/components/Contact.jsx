@@ -22,7 +22,7 @@ function Contact() {
   return (
     <section className="section section-contact" id="contact">
       <div className="section-inner">
-        <div className="section-label">Contact</div>
+        <p className="figure-label">Fig. 05 — Contact</p>
         <h2 className="section-heading">
           Get In <span className="thin">Touch</span>
         </h2>
