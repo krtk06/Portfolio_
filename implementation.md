@@ -2,7 +2,7 @@
 
 > The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
 > Written to be readable by a human and executable phase by phase by an agent.
-> Status: QA complete and a protected Vercel preview is deployed from `ft/redesign`; awaiting the owner’s go-ahead to merge to `main` (production still serves the old build) plus the pending content: Quiz Generator repo visibility, experience entries, the résumé PDF, chart imagery. Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Status: Phase U (The Living Dataset) built and verified on the preview; awaiting owner sign-off before the merge, plus the pending content (Quiz Generator visibility, experience entries, résumé PDF, chart imagery). Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
 > Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
 
 ---
@@ -231,6 +231,34 @@ Every phase ends with a review stop: finish it, present the changes and evidence
 - [x] Cache headers for assets; verify font loading strategy.
 
 **Verify:** Lighthouse reports (both form factors); OG preview check; sitemap lists every project URL.
+
+### Phase U — The Living Dataset (uniqueness redesign)
+
+Research: Muzli's 100 most creative portfolios of 2026, Colorlib's 21 best
+developer portfolios, and a browser pass over godly.website, andrevv.com,
+brittanychiang.com and the Awwwards portfolio category. Pattern found: unique
+sites carry one signature mechanism through the whole site — they are places,
+not layouts.
+
+Decision: **The Living Dataset** — the site itself is a data visualization. The
+particle field stops being decoration and becomes the content: on scroll it
+morphs between figures (sphere → project scatter → capability bars → timeline),
+sections are framed as research figures (Fig. 00–05) with monospace captions
+using real numbers, and work is presented as a dataset table.
+
+- [x] U-R — visual research pass in the browser (screenshots archived)
+- [x] U-D — design comps built as scroll prototypes; the owner picked
+      Comp 1 (Living Dataset)
+- [x] U-1 — the morph engine: ParticleField with GPU morph targets,
+      scroll-linked figures, idle-mounted lazy chunk, reduced-motion static
+      frame, mobile at 2,500 particles / DPR 1
+- [x] U-2 — the notebook layer: Geist Mono self-hosted, Fig. 00–05 labels,
+      mono data captions, dashed annotation rules
+- [x] U-3 — content reframing: work as a dataset table (home and /work), case
+      studies as experiment write-ups, contact as mono links
+- [x] U-4 — QA: axe zero violations on every route, Lighthouse mobile
+      97/100/100/100 and desktop 100/100/100/100, no overflow at 390–1440,
+      link check clean, isolated-session console clean
 
 ### Phase 8 — QA and launch (needs the owner's explicit go-ahead to merge)
 **Goal:** ship, then prove the new score.
