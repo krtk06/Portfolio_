@@ -1,25 +1,28 @@
 import { Link } from 'react-router-dom'
-import { featuredProjects } from '../content/projects'
-import WorkCard from './WorkCard'
+import { featuredProjects, projects } from '../content/projects'
 
 function SelectedWork() {
+  const liveCount = projects.filter((project) => project.live).length
+
   return (
     <section className="section section-work" id="work">
       <div className="section-inner">
-        <div className="section-label">Work</div>
-        <h2 className="section-heading">
-          Selected <span className="thin">Projects</span>
-        </h2>
-        <div className="work-grid">
-          {featuredProjects.map((project) => (
-            <WorkCard key={project.slug} project={project} />
+        <p className="figure-label">Fig. 02 — Selected work</p>
+        <div className="work-rows">
+          {featuredProjects.map((project, index) => (
+            <Link key={project.slug} to={`/work/${project.slug}`} className="work-row">
+              <span className="work-row-ix">{String(index + 1).padStart(2, '0')}</span>
+              <span className="work-row-name">{project.title}</span>
+              <span className="work-row-metric">{project.outcome}</span>
+            </Link>
           ))}
         </div>
-        <div className="work-cta">
-          <Link to="/work" className="btn-secondary">
-            <span>All projects</span>
-          </Link>
-        </div>
+        <p className="data-caption">
+          {featuredProjects.length} featured of {projects.length} projects · {liveCount} live demos · source for all
+        </p>
+        <p className="work-more">
+          <Link to="/work" className="data-link">all five projects →</Link>
+        </p>
       </div>
     </section>
   )
