@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { projects } from '../content/projects'
 import { skillGroups } from '../content/skills'
 
-const COUNTS = { mobile: 4000, tablet: 6000, desktop: 10000 }
+const COUNTS = { mobile: 2500, tablet: 6000, desktop: 10000 }
 
 const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5
 
@@ -86,7 +86,7 @@ function ParticleField() {
       const height = container.clientHeight || window.innerHeight
 
       const renderer = new THREE.WebGLRenderer({ antialias: quality === 'desktop', alpha: true })
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 'mobile' ? 1 : 1.5))
       renderer.setSize(width, height)
       renderer.setClearColor(0x000000, 0)
       container.appendChild(renderer.domElement)
@@ -273,8 +273,8 @@ function ParticleField() {
 
     /* The particle build and shader compile happen once the browser is idle. */
     const schedule = typeof window.requestIdleCallback === 'function'
-      ? (fn) => window.requestIdleCallback(fn, { timeout: 1200 })
-      : (fn) => setTimeout(fn, 100)
+      ? (fn) => window.requestIdleCallback(fn, { timeout: window.innerWidth < 768 ? 2600 : 1200 })
+      : (fn) => setTimeout(fn, window.innerWidth < 768 ? 400 : 100)
 
     schedule(() => {
       if (cancelled) return
