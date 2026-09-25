@@ -13,6 +13,7 @@ export default function Work() {
   return (
     <section className="section section--page">
       <div className="section-inner">
+        <h1 className="visually-hidden">All projects</h1>
         <p className="figure-label">Fig. 02 — All work</p>
         <div className="work-rows work-rows--detailed">
           {projects.map((project, index) => (
