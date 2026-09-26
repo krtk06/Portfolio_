@@ -1,65 +1,12 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
-import { projects } from '../content/projects'
-import { skillDomains } from '../content/skills'
+import { SHAPES } from './shapes'
 
-const COUNTS = { mobile: 1600, tablet: 6000, desktop: 10000 }
+const COUNTS = { mobile: 1800, tablet: 6000, desktop: 11000 }
 
-const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5
-
-/* Every figure is laid out on the camera plane so the morphs read as flat
-   charts, except the sphere which keeps its depth. */
-function buildFigures(count, plane) {
-  const sphere = new Float32Array(count * 3)
-  for (let i = 0; i < count; i++) {
-    const theta = Math.random() * Math.PI * 2
-    const phi = Math.acos(2 * Math.random() - 1)
-    const r = 0.85 + Math.random() * 0.15
-    sphere[i * 3] = r * Math.sin(phi) * Math.cos(theta)
-    sphere[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
-    sphere[i * 3 + 2] = r * Math.cos(phi)
-  }
-
-  const centers = projects.map((_, i) => [
-    ((i + 0.5) / projects.length - 0.5) * plane.w * 0.86,
-    ((i % 2) - 0.5) * plane.h * 0.3,
-  ])
-  const scatter = new Float32Array(count * 3)
-  for (let i = 0; i < count; i++) {
-    const c = centers[i % centers.length]
-    scatter[i * 3] = c[0] + gauss() * plane.w * 0.07
-    scatter[i * 3 + 1] = c[1] + gauss() * plane.h * 0.14
-    scatter[i * 3 + 2] = (Math.random() - 0.5) * 0.15
-  }
-
-  const total = skillDomains.reduce((sum, d) => sum + d.tools.length, 0)
-  const groups = skillDomains.map((d, i) => ({
-    x: ((i + 1) / (skillDomains.length + 1) - 0.5) * plane.w,
-    w: (plane.w / (skillDomains.length + 1)) * 0.55,
-    h: (d.tools.length / total) * plane.h * 0.85,
-  }))
-  const bars = new Float32Array(count * 3)
-  for (let i = 0; i < count; i++) {
-    const g = groups[i % groups.length]
-    bars[i * 3] = g.x + (Math.random() - 0.5) * g.w
-    bars[i * 3 + 1] = -plane.h / 2 + Math.random() * g.h
-    bars[i * 3 + 2] = (Math.random() - 0.5) * 0.1
-  }
-
-  const nodes = projects.map((_, i) => ((i + 0.5) / projects.length - 0.5) * plane.w * 0.9)
-  const timeline = new Float32Array(count * 3)
-  for (let i = 0; i < count; i++) {
-    const t = Math.random()
-    const x = -plane.w * 0.45 + t * plane.w * 0.9
-    const near = nodes.reduce((a, b) => (Math.abs(b - x) < Math.abs(a - x) ? b : a))
-    const onNode = Math.random() < 0.35
-    timeline[i * 3] = onNode ? near + (Math.random() - 0.5) * 0.03 : x
-    timeline[i * 3 + 1] = (Math.random() - 0.5) * 0.05
-    timeline[i * 3 + 2] = (Math.random() - 0.5) * 0.1
-  }
-
-  return { sphere, scatter, bars, timeline }
-}
+/* Scroll positions, as a fraction of the scrollable height, where each shape
+   should be fully formed. These line up with the sections on the home page. */
+const STOPS = [0, 0.18, 0.33, 0.5, 0.68, 0.84, 1]
 
 function ParticleField() {
   const containerRef = useRef(null)
@@ -80,12 +27,15 @@ function ParticleField() {
       const isSmall = window.innerWidth < 768
       const isTablet = window.innerWidth >= 768 && window.innerWidth < 1280
       const quality = isSmall ? 'mobile' : isTablet ? 'tablet' : 'desktop'
-      const COUNT = COUNTS[quality] || 10000
+      const COUNT = COUNTS[quality] || 11000
 
       const width = container.clientWidth || window.innerWidth
       const height = container.clientHeight || window.innerHeight
 
-      const renderer = new THREE.WebGLRenderer({ antialias: quality === 'desktop', alpha: true })
+      const renderer = new THREE.WebGLRenderer({
+        antialias: quality === 'desktop',
+        alpha: true,
+      })
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 'mobile' ? 1 : 1.5))
       renderer.setSize(width, height)
       renderer.setClearColor(0x000000, 0)
@@ -93,113 +43,160 @@ function ParticleField() {
 
       const scene = new THREE.Scene()
       const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100)
-      camera.position.z = 3
+      camera.position.z = 3.4
 
-      const planeH = 2 * camera.position.z * Math.tan((camera.fov * Math.PI) / 360)
-      const plane = { w: planeH * (width / height), h: planeH }
-
-      const { sphere, scatter, bars, timeline } = buildFigures(COUNT, plane)
+      /* How much of the camera plane the figures are allowed to fill. Without
+         this the shapes are authored for a wide viewport and drift out of a
+         narrow one. */
+      const frame = 0.82
+      const shapes = SHAPES.map((shape) => {
+        const points = shape.build(COUNT)
+        /* Work out the figure's own bounds, then normalise it into the frame. */
+        let maxX = 0
+        let maxY = 0
+        for (let i = 0; i < COUNT; i++) {
+          const ax = Math.abs(points[i * 3])
+          const ay = Math.abs(points[i * 3 + 1])
+          if (ax > maxX) maxX = ax
+          if (ay > maxY) maxY = ay
+        }
+        const sx = frame / (maxX || 1)
+        const sy = frame / (maxY || 1)
+        const scale = Math.min(sx, sy)
+        for (let i = 0; i < COUNT; i++) {
+          points[i * 3] *= scale
+          points[i * 3 + 1] *= scale
+          points[i * 3 + 2] *= scale
+        }
+        return points
+      })
 
       const geometry = new THREE.BufferGeometry()
-      geometry.setAttribute('position', new THREE.BufferAttribute(sphere, 3))
-      geometry.setAttribute('aFigure1', new THREE.BufferAttribute(scatter, 3))
-      geometry.setAttribute('aFigure2', new THREE.BufferAttribute(bars, 3))
-      geometry.setAttribute('aFigure3', new THREE.BufferAttribute(timeline, 3))
+      const position = new THREE.BufferAttribute(new Float32Array(shapes[0]), 3)
+      geometry.setAttribute('position', position)
+      geometry.setAttribute('aTarget', new THREE.BufferAttribute(new Float32Array(shapes[1]), 3))
+
+      /* Per-particle offsets give the morph a stagger, so a figure unfurls
+         rather than sliding across as one solid block. */
+      const seeds = new Float32Array(COUNT)
+      for (let i = 0; i < COUNT; i++) seeds[i] = Math.random()
+      geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1))
 
       const sizes = new Float32Array(COUNT)
       const sizeScale = quality === 'mobile' ? 1.5 : 1
-      for (let i = 0; i < COUNT; i++) sizes[i] = (0.012 + Math.random() * 0.012) * sizeScale
-      geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1))
+      for (let i = 0; i < COUNT; i++) {
+        sizes[i] = (0.011 + Math.random() * 0.011) * sizeScale
+      }
+      geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
 
-      const useMouse = !isSmall
+      const useMouse = !isSmall && !reducedMotion
 
       const material = new THREE.ShaderMaterial({
         uniforms: {
           uTime: { value: 0 },
-          uFigure: { value: 0 },
-          ...(useMouse ? { uMouse: { value: new THREE.Vector3(50, 50, 50) } } : {})
+          uMorph: { value: 0 },
+          ...(useMouse ? { uMouse: { value: new THREE.Vector3(50, 50, 50) } } : {}),
         },
         vertexShader: `
-        attribute vec3 aFigure1;
-        attribute vec3 aFigure2;
-        attribute vec3 aFigure3;
-        attribute float size;
-        varying vec3 vColor;
+        attribute vec3 aTarget;
+        attribute float aSeed;
+        attribute float aSize;
         uniform float uTime;
-        uniform float uFigure;
+        uniform float uMorph;
         ${useMouse ? 'uniform vec3 uMouse;' : ''}
-        
+        varying float vFade;
+
         void main() {
-          float f = clamp(uFigure, 0.0, 3.0);
-          vec3 base;
-          if (f < 1.0) base = mix(position, aFigure1, f);
-          else if (f < 2.0) base = mix(aFigure1, aFigure2, f - 1.0);
-          else base = mix(aFigure2, aFigure3, f - 2.0);
-          
-          vColor = color;
-          vec3 pos = base;
-          
-          float breath = sin(uTime * 2.0 + base.x * 6.0) * 0.015;
-          pos += normalize(base + vec3(0.001)) * breath;
-          
+          float t = clamp(uMorph, 0.0, 1.0);
+          /* Stagger: every particle leaves and arrives on its own schedule. */
+          float delay = aSeed * 0.35;
+          float local = clamp((t - delay) / (1.0 - delay), 0.0, 1.0);
+          local = local * local * (3.0 - 2.0 * local);
+
+          vec3 pos = mix(position, aTarget, local);
+
+          /* A small arc mid-flight, so particles travel rather than slide. */
+          float arc = sin(local * 3.14159) * (0.1 + aSeed * 0.14);
+          pos += normalize(vec3(aSeed - 0.5, aSeed - 0.5, 0.35)) * arc;
+
+          /* Slow drift, so the figure breathes when the scroll is still. */
+          pos += vec3(
+            sin(uTime * 0.6 + aSeed * 6.28),
+            cos(uTime * 0.5 + aSeed * 6.28),
+            0.0
+          ) * 0.008;
+
           ${useMouse ? `
           vec3 toMouse = pos - uMouse;
           float dist = length(toMouse);
-          if (dist < 1.3) {
-            float push = (1.3 - dist) * (1.3 - dist) * 0.3;
-            pos += normalize(toMouse) * push;
+          if (dist < 0.9) {
+            pos += normalize(toMouse) * (0.9 - dist) * (0.9 - dist) * 0.4;
           }
           ` : ''}
-          
+
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-          gl_PointSize = size * 350.0 / max(-mvPosition.z, 0.5);
+          gl_PointSize = aSize * 420.0 / max(-mvPosition.z, 0.5);
+          vFade = 1.0 - abs(local - 0.5) * 0.25;
           gl_Position = projectionMatrix * mvPosition;
         }
       `,
         fragmentShader: `
-        varying vec3 vColor;
+        varying float vFade;
         void main() {
           float r = length(gl_PointCoord - vec2(0.5));
           if (r > 0.5) discard;
-          float alpha = (1.0 - r * 2.0) * 0.95;
-          gl_FragColor = vec4(vColor * 2.2, alpha);
+          float alpha = (1.0 - r * 2.0) * 0.95 * vFade;
+          gl_FragColor = vec4(vec3(0.88, 0.90, 0.95) * 2.6, alpha);
         }
       `,
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        vertexColors: true
       })
 
       const points = new THREE.Points(geometry, material)
       scene.add(points)
 
       const startTime = performance.now()
-      let targetFigure = 0
+      let currentIndex = -1
+      let mouse3D = new THREE.Vector3(50, 50, 50)
 
+      /* Map scroll position to a shape index and the blend towards the next. */
       const readScroll = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight
-        targetFigure = Math.min(Math.max(window.scrollY / (max || 1), 0), 1) * 3
+        const p = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0
+        const span = STOPS.length - 1
+        const seg = p * span
+        const index = Math.min(Math.floor(seg), span - 1)
+
+        if (index !== currentIndex) {
+          currentIndex = index
+          /* Swap the pair the shader interpolates between. Cheap, and it only
+             happens when the section actually changes. */
+          position.array.set(shapes[index])
+          position.needsUpdate = true
+          const target = geometry.getAttribute('aTarget')
+          target.array.set(shapes[index + 1])
+          target.needsUpdate = true
+        }
+        /* HOLD is the share of each gap the shape simply stays put, so a
+           figure is readable rather than permanently dissolving. */
+        const HOLD = 0.45
+        const frac = seg - index
+        const morph = frac <= HOLD / 2
+          ? 0
+          : frac >= 1 - HOLD / 2
+            ? 1
+            : (frac - HOLD / 2) / (1 - HOLD)
+        material.uniforms.uMorph.value = Math.min(Math.max(morph, 0), 1)
       }
+
       if (!reducedMotion) {
         window.addEventListener('scroll', readScroll, { passive: true })
         readScroll()
       }
 
-      const renderFrame = () => {
-        const time = (performance.now() - startTime) / 1000
-        material.uniforms.uTime.value = time
-        material.uniforms.uFigure.value +=
-          (targetFigure - material.uniforms.uFigure.value) * 0.07
-        if (useMouse) {
-          material.uniforms.uMouse.value.copy(mouse3D)
-        }
-        renderer.render(scene, camera)
-      }
-
-      let mouse3D = new THREE.Vector3(50, 50, 50)
-
-      if (useMouse && !reducedMotion) {
+      if (useMouse) {
         const handleMouseMove = (e) => {
           const rect = container.getBoundingClientRect()
           const x = ((e.clientX - rect.left) / rect.width) * 2 - 1
@@ -211,7 +208,8 @@ function ParticleField() {
           mouse3D = camera.position.clone().add(dir.multiplyScalar(distance))
         }
         document.addEventListener('mousemove', handleMouseMove)
-        container.__removeMouseMove = () => document.removeEventListener('mousemove', handleMouseMove)
+        container.__removeMouseMove = () =>
+          document.removeEventListener('mousemove', handleMouseMove)
       }
 
       let animationId = 0
@@ -219,7 +217,9 @@ function ParticleField() {
 
       const loop = () => {
         animationId = requestAnimationFrame(loop)
-        renderFrame()
+        material.uniforms.uTime.value = (performance.now() - startTime) / 1000
+        if (useMouse) material.uniforms.uMouse.value.copy(mouse3D)
+        renderer.render(scene, camera)
       }
       const start = () => {
         if (running || reducedMotion) return
@@ -232,17 +232,18 @@ function ParticleField() {
       }
 
       if (reducedMotion) {
-        material.uniforms.uFigure.value = targetFigure
         renderer.render(scene, camera)
       } else {
         start()
       }
 
-      const intersectionObserver = new IntersectionObserver(([entry]) => {
-        if (entry.isIntersecting) start()
-        else stop()
-      })
-      intersectionObserver.observe(container)
+      /* A fixed canvas is always on screen, so pausing is keyed to the tab
+         being hidden rather than to scroll position. */
+      const onVisibility = () => {
+        if (document.hidden) stop()
+        else start()
+      }
+      document.addEventListener('visibilitychange', onVisibility)
 
       const resizeObserver = new ResizeObserver(() => {
         const w = container.clientWidth
@@ -259,7 +260,7 @@ function ParticleField() {
         stop()
         window.removeEventListener('scroll', readScroll)
         if (container.__removeMouseMove) container.__removeMouseMove()
-        intersectionObserver.disconnect()
+        document.removeEventListener('visibilitychange', onVisibility)
         resizeObserver.disconnect()
         if (renderer) {
           renderer.dispose()
@@ -272,10 +273,9 @@ function ParticleField() {
       }
     }
 
-    /* The particle build and shader compile happen once the browser is idle. */
     const schedule = typeof window.requestIdleCallback === 'function'
-      ? (fn) => window.requestIdleCallback(fn, { timeout: window.innerWidth < 768 ? 2600 : 1200 })
-      : (fn) => setTimeout(fn, window.innerWidth < 768 ? 400 : 100)
+      ? (fn) => window.requestIdleCallback(fn, { timeout: 2000 })
+      : (fn) => setTimeout(fn, 100)
 
     schedule(() => {
       if (cancelled) return
