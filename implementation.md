@@ -256,6 +256,12 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-5 — owner review fixes: the field confined to the hero's right column
+      so it never sits under the name or role line; the skills section rebuilt
+      as four domains (Data Analysis, Machine Learning, Software Engineering,
+      Data Science) behind tabs, each with tools ranked by how many of the
+      five projects use them and the projects that prove it; the field's
+      three.js chunk restricted to desktop, where it belongs
 - [x] U-4 — QA: axe zero violations on every route, Lighthouse mobile
       97/100/100/100 and desktop 100/100/100/100, no overflow at 390–1440,
       link check clean, isolated-session console clean
