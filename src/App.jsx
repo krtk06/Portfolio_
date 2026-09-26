@@ -10,33 +10,48 @@ import Work from './pages/Work'
 import WorkDetail from './pages/WorkDetail'
 import NotFound from './pages/NotFound'
 
-/* The three.js field is heavy, so it mounts — and its chunk fetches — only
-   once the browser is idle, after the first paint. */
-const ParticleField = lazy(() => import('./components/ParticleField'))
+const DESKTOP = 768
 
 function App() {
   const location = useLocation()
   const isHome = location.pathname === '/'
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= DESKTOP
+  )
   const [fieldReady, setFieldReady] = useState(false)
 
   useEffect(() => {
-    const schedule = typeof window.requestIdleCallback === 'function'
-      ? (fn) => window.requestIdleCallback(fn, { timeout: 1200 })
-      : (fn) => setTimeout(fn, 200)
-    const id = schedule(() => setFieldReady(true))
-    return () => {
-      if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(id)
-      else clearTimeout(id)
-    }
+    const onResize = () => setIsDesktop(window.innerWidth >= DESKTOP)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  useEffect(() => {
+    if (!isDesktop) return
+    /* The field is the heaviest thing on the page. It waits for the window's
+       load event, then for an idle callback, so its chunk and shader compile
+       never compete with the first paint. */
+    const whenIdle = () => {
+      if (typeof window.requestIdleCallback === 'function') {
+        return window.requestIdleCallback(() => setFieldReady(true), { timeout: 2000 })
+      }
+      const id = setTimeout(() => setFieldReady(true), 400)
+      return () => clearTimeout(id)
+    }
+    if (document.readyState === 'complete') return whenIdle()
+    window.addEventListener('load', whenIdle, { once: true })
+    return () => window.removeEventListener('load', whenIdle)
+  }, [isDesktop])
 
   return (
     <>
       <a className="skip-link" href="#main">Skip to content</a>
       <CustomCursor />
-      {fieldReady && (isHome
-        ? <Suspense fallback={null}><ParticleField /></Suspense>
-        : <ParticleBackground />)}
+      {isHome
+        ? (isDesktop && fieldReady
+            ? <Suspense fallback={null}><LazyField /></Suspense>
+            : null)
+        : <ParticleBackground />}
       <div className="hero-fade"></div>
       <div className="hero-fade-top"></div>
       <Navbar />
@@ -53,5 +68,9 @@ function App() {
     </>
   )
 }
+
+/* Kept below its first use so the chunk is only requested when this renders —
+   which is what stops phones downloading three.js at all. */
+const LazyField = lazy(() => import('./components/ParticleField'))
 
 export default App

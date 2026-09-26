@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { projects } from '../content/projects'
 import { skillDomains } from '../content/skills'
 
-const COUNTS = { mobile: 2500, tablet: 6000, desktop: 10000 }
+const COUNTS = { mobile: 1600, tablet: 6000, desktop: 10000 }
 
 const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5
 
@@ -107,7 +107,8 @@ function ParticleField() {
       geometry.setAttribute('aFigure3', new THREE.BufferAttribute(timeline, 3))
 
       const sizes = new Float32Array(COUNT)
-      for (let i = 0; i < COUNT; i++) sizes[i] = 0.012 + Math.random() * 0.012
+      const sizeScale = quality === 'mobile' ? 1.5 : 1
+      for (let i = 0; i < COUNT; i++) sizes[i] = (0.012 + Math.random() * 0.012) * sizeScale
       geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1))
 
       const useMouse = !isSmall
