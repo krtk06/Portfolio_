@@ -626,19 +626,6 @@ body.has-custom-cursor {
   color: var(--text);
 }
 
-.skill-groups {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 240px));
-  gap: var(--space-8);
-}
-.skill-group-label {
-  font-size: var(--type-micro);
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: var(--space-4);
-}
 
 .about-body {
   max-width: 720px;
@@ -789,11 +776,7 @@ body.has-custom-cursor {
   font-size: var(--type-small);
   color: var(--text-muted);
 }
-.skill-group-list {
-  font-size: 15px;
-  color: var(--text-secondary);
-  line-height: 2;
-}
+
 .contact-links {
   display: flex;
   flex-wrap: wrap;
@@ -814,17 +797,104 @@ body.has-custom-cursor {
   border-color: var(--text);
 }
 
+/* The field lives in the hero's right-hand column so it never sits under the
+   name, the role line or any other copy. */
 .particle-field {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  width: 52vw;
+  height: 100vh;
   z-index: 0;
   pointer-events: none;
 }
 .particle-field canvas {
   display: block;
 }
-.skill-group-label {
-  display: block;
+
+.domain-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px dashed var(--line-strong);
+  padding-bottom: var(--space-4);
+}
+.domain-tab {
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: calc(-1 * var(--space-4) - 1px);
+  cursor: pointer;
+  transition: color var(--dur-micro), border-color var(--dur-micro);
+}
+.domain-tab:hover {
+  color: var(--text-secondary);
+}
+.domain-tab.is-active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+.domain-blurb {
+  max-width: 46ch;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
+}
+.tool-list {
+  list-style: none;
+  margin: 0 0 var(--space-8);
+  padding: 0;
+  max-width: 620px;
+}
+.tool-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 76px;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-2) 0;
+}
+.tool-name {
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+.tool-bar {
+  height: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  position: relative;
+}
+.tool-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--text-faint);
+  transition: width var(--dur-micro);
+}
+.tool-count {
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+  color: var(--text-muted);
+  text-align: right;
+}
+.domain-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3) var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px dashed var(--line-strong);
+}
+.domain-evidence-label {
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------------ */
@@ -864,8 +934,18 @@ body.has-custom-cursor {
   .work-row-metric {
     grid-column: 2;
   }
-  .skill-groups {
+  .particle-field {
+    width: 100vw;
+    height: 62vh;
+    top: auto;
+    bottom: 0;
+  }
+  .tool-row {
     grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+  .tool-count {
+    text-align: left;
   }
 }
 
