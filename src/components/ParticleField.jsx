@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { projects } from '../content/projects'
-import { skillGroups } from '../content/skills'
+import { skillDomains } from '../content/skills'
 
 const COUNTS = { mobile: 2500, tablet: 6000, desktop: 10000 }
 
@@ -32,11 +32,11 @@ function buildFigures(count, plane) {
     scatter[i * 3 + 2] = (Math.random() - 0.5) * 0.15
   }
 
-  const total = skillGroups.reduce((sum, g) => sum + g.skills.length, 0)
-  const groups = skillGroups.map((g, i) => ({
-    x: ((i + 1) / (skillGroups.length + 1) - 0.5) * plane.w,
-    w: (plane.w / (skillGroups.length + 1)) * 0.55,
-    h: (g.skills.length / total) * plane.h * 0.85,
+  const total = skillDomains.reduce((sum, d) => sum + d.tools.length, 0)
+  const groups = skillDomains.map((d, i) => ({
+    x: ((i + 1) / (skillDomains.length + 1) - 0.5) * plane.w,
+    w: (plane.w / (skillDomains.length + 1)) * 0.55,
+    h: (d.tools.length / total) * plane.h * 0.85,
   }))
   const bars = new Float32Array(count * 3)
   for (let i = 0; i < count; i++) {
