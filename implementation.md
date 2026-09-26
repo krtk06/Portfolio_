@@ -256,6 +256,13 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-6 — the field holds seven figures, one per section: sphere, an
+      abstract data-figure beside "How I work", a record helix, the project
+      scatter, four capability bars, a convergence funnel and a timeline.
+      Fixed the real cause of the field being swallowed by the page — every
+      section painted an opaque background over the fixed canvas — and fixed
+      a NaN in the figure generator (a `const y` shadowing the outer
+      accumulator) that was poisoning the whole geometry buffer
 - [x] U-5 — owner review fixes: the field confined to the hero's right column
       so it never sits under the name or role line; the skills section rebuilt
       as four domains (Data Analysis, Machine Learning, Software Engineering,
