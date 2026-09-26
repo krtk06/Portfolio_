@@ -28,19 +28,29 @@ function App() {
 
   useEffect(() => {
     if (!isDesktop) return
-    /* The field is the heaviest thing on the page. It waits for the window's
-       load event, then for an idle callback, so its chunk and shader compile
-       never compete with the first paint. */
-    const whenIdle = () => {
+    /* The field is the heaviest thing on the page, so it waits until the
+       browser reports itself idle after load. The timeout keeps it bounded:
+       on a slow connection the load event can land late, and the field
+       should still appear rather than never. */
+    let idleId
+    const arm = () => {
       if (typeof window.requestIdleCallback === 'function') {
-        return window.requestIdleCallback(() => setFieldReady(true), { timeout: 2000 })
+        idleId = window.requestIdleCallback(
+          () => setFieldReady(true),
+          { timeout: 1500 }
+        )
+      } else {
+        idleId = setTimeout(() => setFieldReady(true), 400)
       }
-      const id = setTimeout(() => setFieldReady(true), 400)
-      return () => clearTimeout(id)
     }
-    if (document.readyState === 'complete') return whenIdle()
-    window.addEventListener('load', whenIdle, { once: true })
-    return () => window.removeEventListener('load', whenIdle)
+    if (document.readyState === 'complete') arm()
+    else window.addEventListener('load', arm, { once: true })
+
+    return () => {
+      window.removeEventListener('load', arm)
+      if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleId)
+      else clearTimeout(idleId)
+    }
   }, [isDesktop])
 
   return (

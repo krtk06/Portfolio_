@@ -45,36 +45,43 @@ function ParticleField() {
       const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100)
       camera.position.z = 3.4
 
-      /* How much of the camera plane the figures are allowed to fill. Without
-         this the shapes are authored for a wide viewport and drift out of a
-         narrow one. */
+      /* Figures are generated on demand, one ahead of the scroll, so opening
+         the page does not pay for all seven at once. Each is normalised into
+         the camera frame — otherwise a shape authored for a wide viewport
+         drifts out of a narrow one. */
       const frame = 0.82
-      const shapes = SHAPES.map((shape) => {
-        const points = shape.build(COUNT)
-        /* Work out the figure's own bounds, then normalise it into the frame. */
+      const built = new Map()
+      const shapeAt = (i) => {
+        if (built.has(i)) return built.get(i)
+        const points = SHAPES[i].build(COUNT)
         let maxX = 0
         let maxY = 0
-        for (let i = 0; i < COUNT; i++) {
-          const ax = Math.abs(points[i * 3])
-          const ay = Math.abs(points[i * 3 + 1])
+        for (let k = 0; k < COUNT; k++) {
+          const ax = Math.abs(points[k * 3])
+          const ay = Math.abs(points[k * 3 + 1])
           if (ax > maxX) maxX = ax
           if (ay > maxY) maxY = ay
         }
-        const sx = frame / (maxX || 1)
-        const sy = frame / (maxY || 1)
-        const scale = Math.min(sx, sy)
-        for (let i = 0; i < COUNT; i++) {
-          points[i * 3] *= scale
-          points[i * 3 + 1] *= scale
-          points[i * 3 + 2] *= scale
+        const scale = Math.min(frame / (maxX || 1), frame / (maxY || 1))
+        for (let k = 0; k < COUNT; k++) {
+          points[k * 3] *= scale
+          points[k * 3 + 1] *= scale
+          points[k * 3 + 2] *= scale
         }
+        built.set(i, points)
         return points
-      })
+      }
+      /* Keep only the current and adjacent figures; drop the rest. */
+      const prune = (i) => {
+        for (const key of built.keys()) {
+          if (Math.abs(key - i) > 1) built.delete(key)
+        }
+      }
 
       const geometry = new THREE.BufferGeometry()
-      const position = new THREE.BufferAttribute(new Float32Array(shapes[0]), 3)
+      const position = new THREE.BufferAttribute(new Float32Array(shapeAt(0)), 3)
       geometry.setAttribute('position', position)
-      geometry.setAttribute('aTarget', new THREE.BufferAttribute(new Float32Array(shapes[1]), 3))
+      geometry.setAttribute('aTarget', new THREE.BufferAttribute(new Float32Array(shapeAt(1)), 3))
 
       /* Per-particle offsets give the morph a stagger, so a figure unfurls
          rather than sliding across as one solid block. */
@@ -171,13 +178,14 @@ function ParticleField() {
 
         if (index !== currentIndex) {
           currentIndex = index
-          /* Swap the pair the shader interpolates between. Cheap, and it only
-             happens when the section actually changes. */
-          position.array.set(shapes[index])
+          /* Swap the pair the shader interpolates between. Only happens when
+             the section changes, and the figures are cached around it. */
+          position.array.set(shapeAt(index))
           position.needsUpdate = true
           const target = geometry.getAttribute('aTarget')
-          target.array.set(shapes[index + 1])
+          target.array.set(shapeAt(index + 1))
           target.needsUpdate = true
+          prune(index)
         }
         /* HOLD is the share of each gap the shape simply stays put, so a
            figure is readable rather than permanently dissolving. */
