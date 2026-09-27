@@ -256,6 +256,11 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-12 — the field is genuinely 3D: orientation is applied in the vertex
+      shader after the morph, driven by page scroll progress so the figure
+      turns and tips continuously rather than snapping at each section. The
+      spin eases back while a shape is held, because a full turn left the
+      person edge-on and unreadable at the moment the reader should see it
 - [x] U-11 — the contact section was still painting an opaque background at a
       higher z-index than the field, so the signal was cut in half by a black
       band. Removed both, matching every other section. Verified by measuring
