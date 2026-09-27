@@ -266,6 +266,15 @@ using real numbers, and work is presented as a dataset table.
       band. Removed both, matching every other section. Verified by measuring
       particle density across the whole page (9.5-15.6%) and by scanning every
       section for an opaque background
+- [x] U-11 — every figure is framed to its own section and the scroll
+      actually animates it. Three real bugs fixed: section centres were
+      compared against document offsets without subtracting half a viewport,
+      leaving every figure out of step with its section; the settled state
+      held `morph = 1`, which shows the *next* figure, so each section
+      displayed its neighbour; and `uTilt`/`uSpin` were declared and used in
+      the shader but never written, so the rotation was frozen at zero. Each
+      figure now owns a non-overlapping band of scroll, fades in and out
+      within it, and turns and tips as it moves
 - [x] U-10 — the field is actually visible: particle count raised to 14,000,
       point size and opacity increased, and the canvas brightness filter
       removed (it brightened the black background as much as the particles,
