@@ -122,14 +122,16 @@ function ParticleField() {
         void main() {
           float t = clamp(uMorph, 0.0, 1.0);
           /* Stagger: every particle leaves and arrives on its own schedule. */
-          float delay = aSeed * 0.35;
+          float delay = aSeed * 0.28;
           float local = clamp((t - delay) / (1.0 - delay), 0.0, 1.0);
           local = local * local * (3.0 - 2.0 * local);
 
           vec3 pos = mix(position, aTarget, local);
 
-          /* A small arc mid-flight, so particles travel rather than slide. */
-          float arc = sin(local * 3.14159) * (0.1 + aSeed * 0.14);
+          /* A small arc mid-flight, so particles travel rather than slide.
+             Kept tight: a wide arc turns the transition into a faint smear
+             that reads as the figure disappearing. */
+          float arc = sin(local * 3.14159) * (0.04 + aSeed * 0.07);
           pos += normalize(vec3(aSeed - 0.5, aSeed - 0.5, 0.35)) * arc;
 
           /* Slow drift, so the figure breathes when the scroll is still. */
@@ -148,8 +150,8 @@ function ParticleField() {
           ` : ''}
 
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-          gl_PointSize = aSize * 420.0 / max(-mvPosition.z, 0.5);
-          vFade = 1.0 - abs(local - 0.5) * 0.25;
+          gl_PointSize = aSize * 520.0 / max(-mvPosition.z, 0.5);
+          vFade = 1.0 - abs(local - 0.5) * 0.12;
           gl_Position = projectionMatrix * mvPosition;
         }
       `,

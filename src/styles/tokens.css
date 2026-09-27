@@ -44,7 +44,7 @@
   --space-24: 96px;
   --space-32: 128px;
 
-  --section-pad: clamp(64px, 9vw, 120px);
+  --section-pad: clamp(56px, 7vw, 96px);
   --container: 1200px;
   --gutter: 24px;
 
