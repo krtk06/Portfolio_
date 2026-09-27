@@ -10,9 +10,9 @@ const smoothstep = (t) => {
   return x * x * (3 - 2 * x)
 }
 
-/* Scroll positions, as a fraction of the scrollable height, where each shape
-   should be fully formed. These line up with the sections on the home page. */
-const STOPS = [0, 0.18, 0.33, 0.5, 0.68, 0.84, 1]
+/* How many full turns the figure makes across the whole page. A little over
+   one turn reads as deliberate rotation; much more turns into a spin. */
+const SPIN_TURNS = 1.15
 
 function ParticleField() {
   const containerRef = useRef(null)
@@ -108,6 +108,11 @@ function ParticleField() {
         uniforms: {
           uTime: { value: 0 },
           uMorph: { value: 0 },
+          /* Scroll-driven orientation. Kept as a uniform so the rotation is
+             applied after the morph, in view space, and therefore looks the
+             same from any angle. */
+          uTilt: { value: 0 },
+          uSpin: { value: 0 },
           ...(useMouse ? { uMouse: { value: new THREE.Vector3(50, 50, 50) } } : {}),
         },
         vertexShader: `
@@ -116,8 +121,21 @@ function ParticleField() {
         attribute float aSize;
         uniform float uTime;
         uniform float uMorph;
+        uniform float uTilt;
+        uniform float uSpin;
         ${useMouse ? 'uniform vec3 uMouse;' : ''}
         varying float vFade;
+
+        /* Rotate about Y then tilt about X, so the figure turns and tips as
+           the reader moves down the page. */
+        vec3 orient(vec3 p) {
+          float c = cos(uSpin);
+          float sn = sin(uSpin);
+          p = vec3(p.x * c - p.z * sn, p.y, p.x * sn + p.z * c);
+          float ct = cos(uTilt);
+          float st = sin(uTilt);
+          return vec3(p.x, p.y * ct - p.z * st, p.y * st + p.z * ct);
+        }
 
         void main() {
           float t = clamp(uMorph, 0.0, 1.0);
@@ -149,7 +167,10 @@ function ParticleField() {
           }
           ` : ''}
 
-          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+          /* Orientation is applied after the morph and the arc, so particles
+             travel between shapes and the whole figure turns together. */
+          vec3 placed = orient(pos);
+          vec4 mvPosition = modelViewMatrix * vec4(placed, 1.0);
           gl_PointSize = aSize * 760.0 / max(-mvPosition.z, 0.5);
           vFade = 1.0 - abs(local - 0.5) * 0.12;
           gl_Position = projectionMatrix * mvPosition;
@@ -260,6 +281,20 @@ function ParticleField() {
               ? 1
               : smoothstep((raw - HOLD / 2) / (1 - HOLD))
         material.uniforms.uMorph.value = morph
+
+        /* Orientation is driven straight off the page's scroll progress, not
+           off the shape index, so it keeps turning smoothly through the morph
+           instead of snapping at each section boundary.
+
+           The figure is eased back to a readable angle as each shape settles:
+           a full turn left the person edge-on and unreadable at the exact
+           point the reader is meant to be looking at it. So the spin runs
+           with the scroll and then relaxes back while the shape is held. */
+        const settle = 1 - morph
+        material.uniforms.uSpin.value =
+          progress * SPIN_TURNS * Math.PI * 2 * (0.25 + 0.75 * settle)
+        material.uniforms.uTilt.value =
+          -0.18 + Math.sin(progress * Math.PI) * 0.2 * settle
       }
 
       if (!reducedMotion) {
