@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { SHAPES } from './shapes'
 
-const COUNTS = { mobile: 1800, tablet: 6000, desktop: 11000 }
+const COUNTS = { mobile: 1800, tablet: 7000, desktop: 14000 }
 
 /* Standard ease, so a transition accelerates away and settles in. */
 const smoothstep = (t) => {
@@ -150,7 +150,7 @@ function ParticleField() {
           ` : ''}
 
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-          gl_PointSize = aSize * 520.0 / max(-mvPosition.z, 0.5);
+          gl_PointSize = aSize * 760.0 / max(-mvPosition.z, 0.5);
           vFade = 1.0 - abs(local - 0.5) * 0.12;
           gl_Position = projectionMatrix * mvPosition;
         }
@@ -160,8 +160,8 @@ function ParticleField() {
         void main() {
           float r = length(gl_PointCoord - vec2(0.5));
           if (r > 0.5) discard;
-          float alpha = (1.0 - r * 2.0) * 0.95 * vFade;
-          gl_FragColor = vec4(vec3(0.88, 0.90, 0.95) * 2.6, alpha);
+          float alpha = (1.0 - r * 2.0) * 1.0 * vFade;
+          gl_FragColor = vec4(vec3(0.90, 0.92, 0.97) * 3.4, alpha);
         }
       `,
         transparent: true,

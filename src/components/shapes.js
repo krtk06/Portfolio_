@@ -127,32 +127,38 @@ function capabilityBars(count) {
   return out
 }
 
-/* Fig 04 — a hollow convergence funnel, for contact. Most points sit on the
-   converging walls rather than inside them, so it reads as a funnel instead of
-   a solid triangle, and a thin stream carries the few that reach the spout. */
-function funnel(count) {
+/* Fig 04 — an outgoing signal, for contact. Concentric rings radiating from a
+   single origin: one point of contact, sending outward. A funnel narrowed
+   everything to a point, which read as a cone and argued the opposite of what
+   the section says. */
+function signal(count) {
   const out = new Float32Array(count * 3)
+  const RINGS = 7
   for (let i = 0; i < count; i++) {
-    /* Down the funnel, biased so the wide mouth holds most of the points. */
-    const t = Math.pow(rand(i, 61), 0.55)
-    const y = 0.78 - t * 1.56
-    /* The cone narrows as it descends. */
-    const halfWidth = 0.72 * (1 - t) + 0.02
-    const onStream = rand(i, 62) < 0.14
+    /* Most points sit on the rings; a few fill the core, which reads as the
+       origin rather than a hole. */
+    const onRing = rand(i, 61) < 0.86
+    let x
+    let y
 
-    if (onStream) {
-      /* The thread that actually converges to a point. */
-      out[i * 3] = gauss(i, 63) * 0.03
-      out[i * 3 + 1] = y
-      out[i * 3 + 2] = gauss(i, 64) * 0.03
+    if (onRing) {
+      /* Pick a ring, then a point around it. */
+      const ring = Math.floor(rand(i, 62) * RINGS)
+      const radius = 0.12 + (ring / (RINGS - 1)) * 0.72
+      const angle = rand(i, 63) * Math.PI * 2
+      /* A little thickness so a ring is a band, not a wire. */
+      const thickness = gauss(i, 64) * 0.012
+      x = Math.cos(angle) * (radius + thickness)
+      y = Math.sin(angle) * (radius + thickness)
     } else {
-      /* The walls: a shell, not a solid body. */
-      const angle = rand(i, 65) * Math.PI * 2
-      const shell = 0.86 + rand(i, 66) * 0.14
-      out[i * 3] = Math.cos(angle) * halfWidth * shell
-      out[i * 3 + 1] = y
-      out[i * 3 + 2] = Math.sin(angle) * halfWidth * shell * 0.42
+      const r = Math.sqrt(rand(i, 65)) * 0.13
+      const angle = rand(i, 66) * Math.PI * 2
+      x = Math.cos(angle) * r
+      y = Math.sin(angle) * r
     }
+    out[i * 3] = x
+    out[i * 3 + 1] = y
+    out[i * 3 + 2] = gauss(i, 67) * 0.05
   }
   return out
 }
@@ -168,7 +174,7 @@ export const SHAPES = [
   { id: 'scatter', label: 'Project scatter', anchor: 'work', at: 0.5, build: projectScatter },
   { id: 'bars', label: 'Capability bars', anchor: 'skills', at: 0.45, build: capabilityBars },
   /* Contact is the last section and the page cannot scroll far enough to
-     centre it, so the funnel is anchored where the field can still be read in
+     centre it, so the signal is anchored where the field can still be read in
      full — the run-up to contact, as the reader leaves the skills chart. */
-  { id: 'funnel', label: 'Funnel', anchor: 'contact', at: -0.35, build: funnel },
+  { id: 'signal', label: 'Signal', anchor: 'contact', at: -0.6, build: signal },
 ]

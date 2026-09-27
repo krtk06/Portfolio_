@@ -820,8 +820,10 @@ body.has-custom-cursor {
   z-index: 1;
   pointer-events: none;
 }
+/* No brightness filter here: it brightened the whole canvas including the
+   black background, which flattened the particles instead of lifting them. */
 .particle-field canvas {
-  filter: brightness(1.35);
+  display: block;
 }
 .particle-field canvas {
   display: block;
