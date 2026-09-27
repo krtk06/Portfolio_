@@ -547,9 +547,11 @@ body.has-custom-cursor {
   border-top: 1px solid var(--line);
   padding-top: var(--section-pad);
   padding-bottom: var(--section-pad);
-  background: var(--bg);
+  /* Transparent and below the field, like every other section: an opaque
+     background here painted over the particles and hid the figure. */
+  background: transparent;
   position: relative;
-  z-index: 20;
+  z-index: 10;
 }
 .contact-text {
   font-size: var(--type-body);
