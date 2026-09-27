@@ -256,6 +256,12 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-8 — shapes no longer fade out mid-scroll: the mid-flight arc was
+      wide enough to smear a figure into a near-invisible cloud, so it is
+      tighter, points are larger, and particles no longer dim in flight.
+      Section padding reduced so there is no dead gap between sections.
+      Verified by sweeping the full scroll range and sampling particle
+      density every few hundred pixels — density never drops below 5%
 - [x] U-7 — each figure is anchored to a real section, measured from the DOM
       and centred in the viewport, so a figure is on screen exactly while its
       section is being read. Scroll is damped per frame and eased with
