@@ -256,6 +256,11 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-11 — the contact section was still painting an opaque background at a
+      higher z-index than the field, so the signal was cut in half by a black
+      band. Removed both, matching every other section. Verified by measuring
+      particle density across the whole page (9.5-15.6%) and by scanning every
+      section for an opaque background
 - [x] U-10 — the field is actually visible: particle count raised to 14,000,
       point size and opacity increased, and the canvas brightness filter
       removed (it brightened the black background as much as the particles,
