@@ -90,26 +90,7 @@ function dataFigure(count) {
   return out
 }
 
-/* Fig 02 — a helix of records: a double spiral standing in for the raw
-   datasets the analysis work starts from. */
-function recordHelix(count) {
-  const out = new Float32Array(count * 3)
-  const turns = 3.4
-  for (let i = 0; i < count; i++) {
-    const t = i / count
-    const a = t * Math.PI * 2 * turns
-    const strand = rand(i, 31) < 0.5 ? 0 : Math.PI
-    const y = 0.72 - t * 1.44
-    /* A thick tube, so the strand reads as a band rather than a wire. */
-    const r = 0.36 + gauss(i, 32) * 0.14
-    out[i * 3] = Math.cos(a + strand) * r
-    out[i * 3 + 1] = y + gauss(i, 33) * 0.05
-    out[i * 3 + 2] = Math.sin(a + strand) * r
-  }
-  return out
-}
-
-/* Fig 03 — the projects, as a scatter of clusters. One cluster per project. */
+/* Fig 02 — the projects, as a scatter of clusters. One cluster per project. */
 function projectScatter(count) {
   const out = new Float32Array(count * 3)
   const centers = projects.map((_, i) => [
@@ -146,52 +127,48 @@ function capabilityBars(count) {
   return out
 }
 
-/* Fig 05 — a convergence funnel, for contact: many points narrowing to one. */
+/* Fig 04 — a hollow convergence funnel, for contact. Most points sit on the
+   converging walls rather than inside them, so it reads as a funnel instead of
+   a solid triangle, and a thin stream carries the few that reach the spout. */
 function funnel(count) {
   const out = new Float32Array(count * 3)
   for (let i = 0; i < count; i++) {
-    const t = i / count
-    /* Most points sit in the wide mouth, a few survive to the spout. */
-    const biased = Math.pow(t, 2.2)
-    const angle = rand(i, 61) * Math.PI * 2
-    const r = 0.68 * (1 - biased) + 0.03
-    out[i * 3] = Math.cos(angle) * r
-    out[i * 3 + 1] = 0.75 - biased * 1.5
-    out[i * 3 + 2] = Math.sin(angle) * r * 0.5
+    /* Down the funnel, biased so the wide mouth holds most of the points. */
+    const t = Math.pow(rand(i, 61), 0.55)
+    const y = 0.78 - t * 1.56
+    /* The cone narrows as it descends. */
+    const halfWidth = 0.72 * (1 - t) + 0.02
+    const onStream = rand(i, 62) < 0.14
+
+    if (onStream) {
+      /* The thread that actually converges to a point. */
+      out[i * 3] = gauss(i, 63) * 0.03
+      out[i * 3 + 1] = y
+      out[i * 3 + 2] = gauss(i, 64) * 0.03
+    } else {
+      /* The walls: a shell, not a solid body. */
+      const angle = rand(i, 65) * Math.PI * 2
+      const shell = 0.86 + rand(i, 66) * 0.14
+      out[i * 3] = Math.cos(angle) * halfWidth * shell
+      out[i * 3 + 1] = y
+      out[i * 3 + 2] = Math.sin(angle) * halfWidth * shell * 0.42
+    }
   }
   return out
 }
 
-/* Fig 06 — a timeline: points strung along a line, gathering at the nodes. */
-function timeline(count) {
-  const out = new Float32Array(count * 3)
-  const nodes = projects.map((_, i) => ((i + 0.5) / projects.length - 0.5) * 1.7)
-  for (let i = 0; i < count; i++) {
-    const t = rand(i, 71)
-    const x = -0.85 + t * 1.7
-    const near = nodes.reduce((a, b) => (Math.abs(b - x) < Math.abs(a - x) ? b : a))
-    const onNode = rand(i, 72) < 0.34
-    out[i * 3] = onNode ? near + (rand(i, 73) * 2 - 1) * 0.06 : x
-    /* Nodes are tall marks; the rail between them is a thin band. */
-    out[i * 3 + 1] = onNode
-      ? (rand(i, 74) * 2 - 1) * 0.26
-      : (rand(i, 75) * 2 - 1) * 0.035
-    out[i * 3 + 2] = gauss(i, 76) * 0.06
-  }
-  return out
-}
-
-/* Order matters: the field walks this list as the reader scrolls.
-   `anchor` is the section a figure belongs to, and `at` is how far into that
-   section it is fully formed (0 = top edge, 1 = bottom edge). Two figures can
-   share a section, which is how the work section gets both a scatter and a
-   helix. ParticleField reads these directly, so the two cannot drift apart. */
+/* Order matters: the field walks this list as the reader scrolls, and
+   `anchor` is the section each figure belongs to. `at` is how far into that
+   section it is fully formed (0 = top edge, 1 = bottom edge). One figure per
+   section: a second figure inside a section meant a mid-section morph, which
+   is what left shapes half-formed and unreadable. */
 export const SHAPES = [
   { id: 'sphere', label: 'Sphere', anchor: 'hero', at: 0.5, build: sphere },
   { id: 'figure', label: 'Data figure', anchor: 'about', at: 0.45, build: dataFigure },
-  { id: 'scatter', label: 'Project scatter', anchor: 'work', at: 0.3, build: projectScatter },
-  { id: 'helix', label: 'Record helix', anchor: 'work', at: 0.8, build: recordHelix },
+  { id: 'scatter', label: 'Project scatter', anchor: 'work', at: 0.5, build: projectScatter },
   { id: 'bars', label: 'Capability bars', anchor: 'skills', at: 0.45, build: capabilityBars },
-  { id: 'funnel', label: 'Funnel', anchor: 'contact', at: 0.4, build: funnel },
-  { id: 'timeline', label: 'Timeline', anchor: 'contact', at: 0.9, build: timeline },
+  /* Contact is the last section and the page cannot scroll far enough to
+     centre it, so the funnel is anchored where the field can still be read in
+     full — the run-up to contact, as the reader leaves the skills chart. */
+  { id: 'funnel', label: 'Funnel', anchor: 'contact', at: -0.35, build: funnel },
 ]

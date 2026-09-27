@@ -542,8 +542,8 @@ body.has-custom-cursor {
 .section-contact {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   border-top: 1px solid var(--line);
   padding-top: var(--section-pad);
   padding-bottom: var(--section-pad);
@@ -555,7 +555,7 @@ body.has-custom-cursor {
   font-size: var(--type-body);
   color: var(--text-secondary);
   line-height: 1.7;
-  max-width: 480px;
+  max-width: 42ch;
   margin-top: var(--space-6);
   margin-bottom: var(--space-8);
 }
@@ -741,11 +741,11 @@ body.has-custom-cursor {
 
 .work-rows {
   display: grid;
-  max-width: 880px;
+  max-width: 660px;
 }
 .work-row {
   display: grid;
-  grid-template-columns: 44px 1fr auto;
+  grid-template-columns: 40px 1fr auto;
   gap: var(--space-4);
   align-items: baseline;
   padding: var(--space-4) 0;
@@ -787,6 +787,12 @@ body.has-custom-cursor {
   gap: var(--space-4) var(--space-6);
   margin-top: var(--space-6);
 }
+/* The contact block was centred, which pushed it into the field's column.
+   It now lines up with every other section, on the left. */
+.section-contact .section-inner {
+  max-width: 660px;
+  margin: 0;
+}
 .data-link {
   font-family: var(--font-mono);
   font-size: var(--type-small);
@@ -803,11 +809,13 @@ body.has-custom-cursor {
 
 /* The field lives in the hero's right-hand column so it never sits under the
    name, the role line or any other copy. */
+/* The field starts past the widest text column, so particles never sit under
+   a heading, a metric or a link. */
 .particle-field {
   position: fixed;
   top: 0;
   right: 0;
-  width: 48vw;
+  width: 38vw;
   height: 100vh;
   z-index: 1;
   pointer-events: none;
@@ -857,7 +865,7 @@ body.has-custom-cursor {
   list-style: none;
   margin: 0 0 var(--space-8);
   padding: 0;
-  max-width: 620px;
+  max-width: 560px;
 }
 .tool-row {
   display: grid;
@@ -892,9 +900,10 @@ body.has-custom-cursor {
 .domain-evidence {
   display: flex;
   flex-wrap: wrap;
+  max-width: 620px;
   align-items: baseline;
-  column-gap: var(--space-5);
-  row-gap: var(--space-3);
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
   margin-top: var(--space-2);
   padding-top: var(--space-5);
   border-top: 1px dashed var(--line-strong);
@@ -910,7 +919,7 @@ body.has-custom-cursor {
 .domain-evidence .data-link + .data-link::before {
   content: "·";
   color: var(--text-faint);
-  margin-right: var(--space-5);
+  margin-right: var(--space-3);
 }
 
 /* ------------------------------------------------------------------ */
