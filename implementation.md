@@ -256,6 +256,12 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-10 — the field is actually visible: particle count raised to 14,000,
+      point size and opacity increased, and the canvas brightness filter
+      removed (it brightened the black background as much as the particles,
+      flattening the figure). The contact figure is an outgoing signal rather
+      than a funnel, which read as a cone and argued the opposite of the
+      section
 - [x] U-9 — the field no longer sits under any text. It previously started
       at x=734 while the work rows ran to x=993; the field is now 38vw and
       the text columns are capped, with contact aligned left to match every
@@ -273,7 +279,8 @@ using real numbers, and work is presented as a dataset table.
       smoothstep, so a wheel flick becomes a continuous glide
 - [x] U-6 — the field holds five figures, one per section: sphere (hero),
       an abstract data-figure beside "How I work", the project scatter,
-      four capability bars, and a hollow convergence funnel closing the page.
+      four capability bars, and an outgoing signal — concentric rings from a
+      single origin — closing the page.
       Fixed the real cause of the field being swallowed by the page — every
       section painted an opaque background over the fixed canvas — and fixed
       a NaN in the figure generator (a `const y` shadowing the outer
