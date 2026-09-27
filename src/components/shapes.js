@@ -181,12 +181,17 @@ function timeline(count) {
   return out
 }
 
+/* Order matters: the field walks this list as the reader scrolls.
+   `anchor` is the section a figure belongs to, and `at` is how far into that
+   section it is fully formed (0 = top edge, 1 = bottom edge). Two figures can
+   share a section, which is how the work section gets both a scatter and a
+   helix. ParticleField reads these directly, so the two cannot drift apart. */
 export const SHAPES = [
-  { id: 'sphere', label: 'Sphere', build: sphere },
-  { id: 'figure', label: 'Data figure', build: dataFigure },
-  { id: 'helix', label: 'Record helix', build: recordHelix },
-  { id: 'scatter', label: 'Project scatter', build: projectScatter },
-  { id: 'bars', label: 'Capability bars', build: capabilityBars },
-  { id: 'funnel', label: 'Funnel', build: funnel },
-  { id: 'timeline', label: 'Timeline', build: timeline },
+  { id: 'sphere', label: 'Sphere', anchor: 'hero', at: 0.5, build: sphere },
+  { id: 'figure', label: 'Data figure', anchor: 'about', at: 0.45, build: dataFigure },
+  { id: 'scatter', label: 'Project scatter', anchor: 'work', at: 0.3, build: projectScatter },
+  { id: 'helix', label: 'Record helix', anchor: 'work', at: 0.8, build: recordHelix },
+  { id: 'bars', label: 'Capability bars', anchor: 'skills', at: 0.45, build: capabilityBars },
+  { id: 'funnel', label: 'Funnel', anchor: 'contact', at: 0.4, build: funnel },
+  { id: 'timeline', label: 'Timeline', anchor: 'contact', at: 0.9, build: timeline },
 ]

@@ -4,6 +4,12 @@ import { SHAPES } from './shapes'
 
 const COUNTS = { mobile: 1800, tablet: 6000, desktop: 11000 }
 
+/* Standard ease, so a transition accelerates away and settles in. */
+const smoothstep = (t) => {
+  const x = Math.min(Math.max(t, 0), 1)
+  return x * x * (3 - 2 * x)
+}
+
 /* Scroll positions, as a fraction of the scrollable height, where each shape
    should be fully formed. These line up with the sections on the home page. */
 const STOPS = [0, 0.18, 0.33, 0.5, 0.68, 0.84, 1]
@@ -167,19 +173,69 @@ function ParticleField() {
       const startTime = performance.now()
       let currentIndex = -1
       let mouse3D = new THREE.Vector3(50, 50, 50)
+      /* Scroll is damped every frame, so a flick of the wheel turns into a
+         continuous glide rather than a jump between two shapes. */
+      let targetProgress = 0
+      let progress = 0
 
-      /* Map scroll position to a shape index and the blend towards the next. */
+      /* Each figure is anchored to a real section, measured from the DOM, so a
+         shape is actually on screen while its section is being read. The list
+         comes from SHAPES itself — the order of the figures is the order they
+         appear in — so the two can never drift apart. */
+      let stops = null
+      let sectionBounds = []
+      const measureStops = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight
+        if (max <= 0) return false
+        sectionBounds = []
+        for (const { anchor } of SHAPES) {
+          if (anchor && !sectionBounds.some((b) => b.id === anchor)) {
+            const el = document.getElementById(anchor)
+            if (!el) return false
+            sectionBounds.push({
+              id: anchor,
+              top: el.offsetTop,
+              height: el.offsetHeight,
+            })
+          }
+        }
+        stops = SHAPES.map(({ anchor, at }) => {
+          const section = sectionBounds.find((b) => b.id === anchor)
+          /* The viewport centre of the anchored point is the scroll offset at
+             which that figure should be fully formed. */
+          const top = section.top + section.height * at
+          return Math.min(Math.max(top - window.innerHeight / 2, 0), max) / max
+        })
+        /* Guarantee the list is non-decreasing, so the walk stays monotonic. */
+        for (let i = 1; i < stops.length; i++) {
+          if (stops[i] < stops[i - 1]) stops[i] = stops[i - 1]
+        }
+        return true
+      }
+
       const readScroll = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight
-        const p = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0
-        const span = STOPS.length - 1
-        const seg = p * span
-        const index = Math.min(Math.floor(seg), span - 1)
+        targetProgress = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0
+        if (!stops) measureStops()
+      }
+
+      /* Per-frame: ease towards the scroll target, then find which pair of
+         figures to blend between and how far. */
+      const updateMorph = () => {
+        progress += (targetProgress - progress) * 0.09
+        if (!stops) {
+          if (!measureStops()) return
+        }
+        let index = 0
+        for (let i = 0; i < stops.length - 1; i++) {
+          if (progress >= stops[i]) index = i
+        }
+        index = Math.min(index, stops.length - 2)
 
         if (index !== currentIndex) {
           currentIndex = index
           /* Swap the pair the shader interpolates between. Only happens when
-             the section changes, and the figures are cached around it. */
+             the reader crosses a boundary, and the figures stay cached. */
           position.array.set(shapeAt(index))
           position.needsUpdate = true
           const target = geometry.getAttribute('aTarget')
@@ -187,16 +243,21 @@ function ParticleField() {
           target.needsUpdate = true
           prune(index)
         }
-        /* HOLD is the share of each gap the shape simply stays put, so a
-           figure is readable rather than permanently dissolving. */
-        const HOLD = 0.45
-        const frac = seg - index
-        const morph = frac <= HOLD / 2
-          ? 0
-          : frac >= 1 - HOLD / 2
-            ? 1
-            : (frac - HOLD / 2) / (1 - HOLD)
-        material.uniforms.uMorph.value = Math.min(Math.max(morph, 0), 1)
+
+        const a = stops[index]
+        const b = stops[index + 1]
+        const span = Math.max(b - a, 0.0001)
+        const raw = Math.min(Math.max((progress - a) / span, 0), 1)
+        /* Ease in and out of each transition, and hold briefly at both ends
+           so a settled figure is legible before it starts to change. */
+        const HOLD = 0.3
+        const morph =
+          raw <= HOLD / 2
+            ? 0
+            : raw >= 1 - HOLD / 2
+              ? 1
+              : smoothstep((raw - HOLD / 2) / (1 - HOLD))
+        material.uniforms.uMorph.value = morph
       }
 
       if (!reducedMotion) {
@@ -226,6 +287,7 @@ function ParticleField() {
       const loop = () => {
         animationId = requestAnimationFrame(loop)
         material.uniforms.uTime.value = (performance.now() - startTime) / 1000
+        updateMorph()
         if (useMouse) material.uniforms.uMouse.value.copy(mouse3D)
         renderer.render(scene, camera)
       }
@@ -240,6 +302,9 @@ function ParticleField() {
       }
 
       if (reducedMotion) {
+        readScroll()
+        progress = targetProgress
+        updateMorph()
         renderer.render(scene, camera)
       } else {
         start()
@@ -261,6 +326,9 @@ function ParticleField() {
           camera.updateProjectionMatrix()
           renderer.setSize(w, h)
         }
+        /* Section offsets move when text reflows, so the anchors are re-read. */
+        stops = null
+        measureStops()
       })
       resizeObserver.observe(container)
 
