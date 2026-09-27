@@ -10,9 +10,9 @@ const smoothstep = (t) => {
   return x * x * (3 - 2 * x)
 }
 
-/* How many full turns the figure makes across the whole page. A little over
-   one turn reads as deliberate rotation; much more turns into a spin. */
-const SPIN_TURNS = 1.15
+/* Scroll positions, as a fraction of the scrollable height, where each shape
+   should be fully formed. These line up with the sections on the home page. */
+const STOPS = [0, 0.18, 0.33, 0.5, 0.68, 0.84, 1]
 
 function ParticleField() {
   const containerRef = useRef(null)
@@ -108,6 +108,9 @@ function ParticleField() {
         uniforms: {
           uTime: { value: 0 },
           uMorph: { value: 0 },
+          /* Fades a figure out as its section is left, so it is never visible
+             in the next section. */
+          uPresence: { value: 0 },
           /* Scroll-driven orientation. Kept as a uniform so the rotation is
              applied after the morph, in view space, and therefore looks the
              same from any angle. */
@@ -121,6 +124,7 @@ function ParticleField() {
         attribute float aSize;
         uniform float uTime;
         uniform float uMorph;
+        uniform float uPresence;
         uniform float uTilt;
         uniform float uSpin;
         ${useMouse ? 'uniform vec3 uMouse;' : ''}
@@ -172,7 +176,9 @@ function ParticleField() {
           vec3 placed = orient(pos);
           vec4 mvPosition = modelViewMatrix * vec4(placed, 1.0);
           gl_PointSize = aSize * 760.0 / max(-mvPosition.z, 0.5);
-          vFade = 1.0 - abs(local - 0.5) * 0.12;
+          /* Dimmed while forming, and scaled to zero when this figure is not
+             the one on screen, so it never bleeds into the next section. */
+          vFade = (1.0 - abs(local - 0.5) * 0.12) * uPresence;
           gl_Position = projectionMatrix * mvPosition;
         }
       `,
@@ -201,100 +207,136 @@ function ParticleField() {
       let targetProgress = 0
       let progress = 0
 
-      /* Each figure is anchored to a real section, measured from the DOM, so a
-         shape is actually on screen while its section is being read. The list
-         comes from SHAPES itself — the order of the figures is the order they
-         appear in — so the two can never drift apart. */
-      let stops = null
-      let sectionBounds = []
-      const measureStops = () => {
+      /* Every figure belongs to exactly one section, and each one gets a
+         `band` of scroll around that section where it is the visible figure.
+         Bands are measured from the DOM so they always match the real layout,
+         and they cannot overlap — which is what stops one section's shape
+         from appearing in the next. */
+      let bands = null
+      const measureBands = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight
         if (max <= 0) return false
-        sectionBounds = []
+
+        const found = []
         for (const { anchor } of SHAPES) {
-          if (anchor && !sectionBounds.some((b) => b.id === anchor)) {
-            const el = document.getElementById(anchor)
-            if (!el) return false
-            sectionBounds.push({
-              id: anchor,
-              top: el.offsetTop,
-              height: el.offsetHeight,
-            })
-          }
+          const el = anchor ? document.getElementById(anchor) : null
+          if (anchor && !el) return false
+          found.push(el)
         }
-        stops = SHAPES.map(({ anchor, at }) => {
-          const section = sectionBounds.find((b) => b.id === anchor)
-          /* The viewport centre of the anchored point is the scroll offset at
-             which that figure should be fully formed. */
-          const top = section.top + section.height * at
-          return Math.min(Math.max(top - window.innerHeight / 2, 0), max) / max
+        if (found.some((el, i) => !el && SHAPES[i].anchor)) return false
+
+        /* The scroll offset at which each section's centre sits in the middle
+           of the screen. Document offset minus half a viewport — comparing a
+           scroll position against a document offset is what left every figure
+           half a screen out of step with its own section. */
+        const half = window.innerHeight / 2
+        const centres = found.map((el) =>
+          el
+            ? Math.min(Math.max(el.offsetTop + el.offsetHeight * 0.5 - half, 0), max)
+            : 0
+        )
+        /* The last section's centre can sit past the furthest the page scrolls,
+           so the final figure is re-centred where it is actually reachable. */
+        if (centres.length > 1 && centres[centres.length - 1] > max - 40) {
+          centres[centres.length - 1] = Math.min(max * 0.94, max)
+        }
+        /* Midpoints between consecutive section centres become the boundaries.
+           Each figure owns the stretch of scroll around its own section. */
+        const edges = centres.map((c, i) => (i === 0 ? 0 : (centres[i - 1] + c) / 2))
+        const last = centres.length - 1
+        edges.push(max)
+
+        bands = SHAPES.map((shape, i) => {
+          /* For the last section, which the page cannot scroll past, the band
+             is stretched backwards so the figure is still fully in view. */
+          const from =
+            shape.anchor === SHAPES[last].anchor && i === last
+              ? Math.max(edges[last] - (edges[last] - edges[last - 1]) * 0.9, 0)
+              : edges[i]
+          return { from, to: edges[i + 1], index: i }
         })
-        /* Guarantee the list is non-decreasing, so the walk stays monotonic. */
-        for (let i = 1; i < stops.length; i++) {
-          if (stops[i] < stops[i - 1]) stops[i] = stops[i - 1]
-        }
         return true
       }
 
       const readScroll = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight
         targetProgress = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0
-        if (!stops) measureStops()
+        if (!bands) measureBands()
       }
 
-      /* Per-frame: ease towards the scroll target, then find which pair of
-         figures to blend between and how far. */
+      /* Per-frame: ease towards the scroll target, then work out which figure
+         owns this part of the page and how far through its band we are. */
       const updateMorph = () => {
         progress += (targetProgress - progress) * 0.09
-        if (!stops) {
-          if (!measureStops()) return
-        }
-        let index = 0
-        for (let i = 0; i < stops.length - 1; i++) {
-          if (progress >= stops[i]) index = i
-        }
-        index = Math.min(index, stops.length - 2)
+        if (!bands && !measureBands()) return
 
-        if (index !== currentIndex) {
-          currentIndex = index
+        const y = progress * (document.documentElement.scrollHeight - window.innerHeight)
+        /* Find the band the reader is in. */
+        let active = bands[bands.length - 1]
+        for (const band of bands) {
+          if (y < band.to) {
+            active = band
+            break
+          }
+        }
+
+        if (active.index !== currentIndex) {
+          currentIndex = active.index
           /* Swap the pair the shader interpolates between. Only happens when
-             the reader crosses a boundary, and the figures stay cached. */
-          position.array.set(shapeAt(index))
+             the reader crosses into a different figure, and the shapes stay
+             cached around it. */
+          position.array.set(shapeAt(currentIndex))
           position.needsUpdate = true
           const target = geometry.getAttribute('aTarget')
-          target.array.set(shapeAt(index + 1))
+          target.array.set(shapeAt(Math.min(currentIndex + 1, SHAPES.length - 1)))
           target.needsUpdate = true
-          prune(index)
+          prune(currentIndex)
         }
 
-        const a = stops[index]
-        const b = stops[index + 1]
-        const span = Math.max(b - a, 0.0001)
-        const raw = Math.min(Math.max((progress - a) / span, 0), 1)
-        /* Ease in and out of each transition, and hold briefly at both ends
-           so a settled figure is legible before it starts to change. */
-        const HOLD = 0.3
-        const morph =
-          raw <= HOLD / 2
-            ? 0
-            : raw >= 1 - HOLD / 2
-              ? 1
-              : smoothstep((raw - HOLD / 2) / (1 - HOLD))
+        /* Within the band the figure rises, holds, then hands over: the shape
+           is only fully formed while its own section is on screen, and it is
+           gone by the time the next section takes over. `raw` is measured
+           against the middle of the band, so the hold lands on the section
+           itself rather than on the edge. */
+        const span = Math.max(active.to - active.from, 0.0001)
+        const raw = Math.min(Math.max((y - active.from) / span, 0), 1)
+        /* Centre of this band, which lines up with the section it belongs to. */
+        const mid = (active.from + active.to) / 2
+        const half = Math.max((active.to - active.from) / 2, 1)
+        /* Signed distance from the section's centre, -1 at one edge to +1 at
+           the other. Zero means the figure is settled on its own section. */
+        const centred = Math.min(Math.max((y - mid) / half, -1), 1)
+        const RAMP = 0.55
+
+        /* `position` holds this section's figure and `aTarget` the next one, so
+           morph 0 shows this section and morph 1 shows the next. The hold
+           therefore sits at 0 — settling on 1 is exactly what made every
+           section display its neighbour. */
+        let morph
+        let presence
+        if (centred < -RAMP) {
+          /* Arriving: this section's figure fades up. */
+          const t = (centred + 1) / (1 - RAMP)
+          morph = 0
+          presence = smoothstep(t * 1.3)
+        } else if (centred > RAMP) {
+          /* Leaving: cross into the next figure while fading down, so the
+             next section's shape is already formed when its turn begins. */
+          const t = (centred - RAMP) / (1 - RAMP)
+          morph = smoothstep(t)
+          presence = 1 - smoothstep(t * 1.3)
+        } else {
+          /* Settled: the figure holds, fully formed, on its own section. */
+          morph = 0
+          presence = 1
+        }
         material.uniforms.uMorph.value = morph
-
-        /* Orientation is driven straight off the page's scroll progress, not
-           off the shape index, so it keeps turning smoothly through the morph
-           instead of snapping at each section boundary.
-
-           The figure is eased back to a readable angle as each shape settles:
-           a full turn left the person edge-on and unreadable at the exact
-           point the reader is meant to be looking at it. So the spin runs
-           with the scroll and then relaxes back while the shape is held. */
-        const settle = 1 - morph
-        material.uniforms.uSpin.value =
-          progress * SPIN_TURNS * Math.PI * 2 * (0.25 + 0.75 * settle)
-        material.uniforms.uTilt.value =
-          -0.18 + Math.sin(progress * Math.PI) * 0.2 * settle
+        material.uniforms.uPresence.value = presence
+        /* The figure turns and tips as the reader moves through its band, so
+           the scroll itself animates the object instead of only swapping it.
+           Measured within the band, so each figure is re-oriented on arrival. */
+        material.uniforms.uSpin.value = (raw - 0.5) * 0.9
+        material.uniforms.uTilt.value = (raw - 0.5) * 0.5
       }
 
       if (!reducedMotion) {
