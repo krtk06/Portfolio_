@@ -256,6 +256,10 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-7 — each figure is anchored to a real section, measured from the DOM
+      and centred in the viewport, so a figure is on screen exactly while its
+      section is being read. Scroll is damped per frame and eased with
+      smoothstep, so a wheel flick becomes a continuous glide
 - [x] U-6 — the field holds seven figures, one per section: sphere, an
       abstract data-figure beside "How I work", a record helix, the project
       scatter, four capability bars, a convergence funnel and a timeline.
