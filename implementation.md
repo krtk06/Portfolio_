@@ -256,6 +256,11 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-9 — the field no longer sits under any text. It previously started
+      at x=734 while the work rows ran to x=993; the field is now 38vw and
+      the text columns are capped, with contact aligned left to match every
+      other section. Verified by measuring rendered text extents with a Range
+      across every heading, paragraph, link and list item: zero overlaps
 - [x] U-8 — shapes no longer fade out mid-scroll: the mid-flight arc was
       wide enough to smear a figure into a near-invisible cloud, so it is
       tighter, points are larger, and particles no longer dim in flight.
@@ -266,13 +271,15 @@ using real numbers, and work is presented as a dataset table.
       and centred in the viewport, so a figure is on screen exactly while its
       section is being read. Scroll is damped per frame and eased with
       smoothstep, so a wheel flick becomes a continuous glide
-- [x] U-6 — the field holds seven figures, one per section: sphere, an
-      abstract data-figure beside "How I work", a record helix, the project
-      scatter, four capability bars, a convergence funnel and a timeline.
+- [x] U-6 — the field holds five figures, one per section: sphere (hero),
+      an abstract data-figure beside "How I work", the project scatter,
+      four capability bars, and a hollow convergence funnel closing the page.
       Fixed the real cause of the field being swallowed by the page — every
       section painted an opaque background over the fixed canvas — and fixed
       a NaN in the figure generator (a `const y` shadowing the outer
-      accumulator) that was poisoning the whole geometry buffer
+      accumulator) that was poisoning the whole geometry buffer. A record
+      helix and a timeline were tried and removed: both read as scribbles, and
+      two figures in one section left a mid-section morph that never settled
 - [x] U-5 — owner review fixes: the field confined to the hero's right column
       so it never sits under the name or role line; the skills section rebuilt
       as four domains (Data Analysis, Machine Learning, Software Engineering,
