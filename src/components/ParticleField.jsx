@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
-import { SHAPES } from './shapes'
+import { SHAPES, orderAlongCurve } from './shapes'
 
 const COUNTS = { mobile: 1800, tablet: 7000, desktop: 14000 }
 
@@ -58,7 +58,9 @@ function ParticleField() {
       const built = new Map()
       const shapeAt = (i) => {
         if (built.has(i)) return built.get(i)
-        const points = SHAPES[i].build(COUNT)
+        /* Reorder along the Morton curve first, so every figure shares one
+           particle order and points travel short paths between shapes. */
+        const points = orderAlongCurve(SHAPES[i].build(COUNT), COUNT)
         const frame = SHAPES[i].frame ?? DEFAULT_FRAME
         let maxX = 0
         let maxY = 0
@@ -104,10 +106,22 @@ function ParticleField() {
 
       const useMouse = !isSmall && !reducedMotion
 
+      /* How far the curl field may carry a particle out of its lane, how tight
+         the swirls are, and how fast they eddy. The mid-flight value is large
+         on purpose: the point is a clearly-visible pour from one figure into
+         its next. Drift is the same field turned down, applied always, so the
+         field never looks frozen while a figure holds. */
+      const FLOW = reducedMotion ? 0 : isSmall ? 0.22 : isTablet ? 0.30 : 0.38
+      const DRIFT = reducedMotion ? 0 : isSmall ? 0.010 : isTablet ? 0.014 : 0.018
+
       const material = new THREE.ShaderMaterial({
         uniforms: {
           uTime: { value: 0 },
           uMorph: { value: 0 },
+          uFlow: { value: FLOW },
+          uDrift: { value: DRIFT },
+          uNoiseScale: { value: 1.2 },
+          uFlowSpeed: { value: 0.22 },
           /* Fades a figure out as its section is left, so it is never visible
              in the next section. */
           uPresence: { value: 0 },
@@ -127,8 +141,110 @@ function ParticleField() {
         uniform float uPresence;
         uniform float uTilt;
         uniform float uSpin;
+        uniform float uFlow;
+        uniform float uDrift;
+        uniform float uNoiseScale;
+        uniform float uFlowSpeed;
         ${useMouse ? 'uniform vec3 uMouse;' : ''}
         varying float vFade;
+
+        /* 3D simplex noise (Ashima / Stefan Gustavson). The field needs a
+           smooth, cheap function of position to sample, and this is the usual
+           one: a handful of hashed gradients, interpolated. */
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+        vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+        float snoise(vec3 v) {
+          const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+          const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+
+          vec3 i  = floor(v + dot(v, C.yyy));
+          vec3 x0 = v - i + dot(i, C.xxx);
+
+          vec3 g = step(x0.yzx, x0.xyz);
+          vec3 l = 1.0 - g;
+          vec3 i1 = min(g.xyz, l.zxy);
+          vec3 i2 = max(g.xyz, l.zxy);
+
+          vec3 x1 = x0 - i1 + C.xxx;
+          vec3 x2 = x0 - i2 + C.yyy;
+          vec3 x3 = x0 - D.yyy;
+
+          i = mod289(i);
+          vec4 p = permute(permute(permute(
+                     i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                   + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                   + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+
+          float n_ = 0.142857142857;
+          vec3 ns = n_ * D.wyz - D.xzx;
+
+          vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+
+          vec4 x_ = floor(j * ns.z);
+          vec4 y_ = floor(j - 7.0 * x_);
+
+          vec4 x = x_ * ns.x + ns.yyyy;
+          vec4 y = y_ * ns.x + ns.yyyy;
+          vec4 h = 1.0 - abs(x) - abs(y);
+
+          vec4 b0 = vec4(x.xy, y.xy);
+          vec4 b1 = vec4(x.zw, y.zw);
+
+          vec4 s0 = floor(b0) * 2.0 + 1.0;
+          vec4 s1 = floor(b1) * 2.0 + 1.0;
+          vec4 sh = -step(h, vec4(0.0));
+
+          vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+          vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+
+          vec3 p0 = vec3(a0.xy, h.x);
+          vec3 p1 = vec3(a0.zw, h.y);
+          vec3 p2 = vec3(a1.xy, h.z);
+          vec3 p3 = vec3(a1.zw, h.w);
+
+          vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+          p0 *= norm.x;
+          p1 *= norm.y;
+          p2 *= norm.z;
+          p3 *= norm.w;
+
+          vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+          m = m * m;
+          return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+        }
+
+        vec3 snoiseVec3(vec3 p) {
+          return vec3(
+            snoise(p),
+            snoise(p + vec3(19.19, 7.13, 3.37)),
+            snoise(p + vec3(11.31, 27.70, 5.50))
+          );
+        }
+
+        /* Curl of a noise potential: the direction the noise field would
+           swirl in. Because it is a curl, it is divergence-free, so particles
+           are carried around in loops rather than piled up — the difference
+           between a fluid and a drift. */
+        vec3 curlNoise(vec3 p) {
+          const float e = 0.06;
+          vec3 dx = vec3(e, 0.0, 0.0);
+          vec3 dy = vec3(0.0, e, 0.0);
+          vec3 dz = vec3(0.0, 0.0, e);
+
+          vec3 p0 = snoiseVec3(p);
+          vec3 px = snoiseVec3(p + dx);
+          vec3 py = snoiseVec3(p + dy);
+          vec3 pz = snoiseVec3(p + dz);
+
+          float x = (py.z - p0.z) - (pz.y - p0.y);
+          float y = (pz.x - p0.x) - (px.z - p0.z);
+          float z = (px.y - p0.y) - (py.x - p0.x);
+          /* Direction only; the caller decides how far along it to travel. */
+          return normalize(vec3(x, y, z));
+        }
 
         /* Rotate about Y then tilt about X, so the figure turns and tips as
            the reader moves down the page. */
@@ -143,17 +259,35 @@ function ParticleField() {
 
         void main() {
           float t = clamp(uMorph, 0.0, 1.0);
-          /* Stagger: every particle leaves and arrives on its own schedule. */
-          float delay = aSeed * 0.28;
+          /* Stagger: every particle leaves and arrives on its own schedule. A
+             wide window — up to nearly half the morph — is what turns the swap
+             into a pour: points set off one after another rather than as one
+             block. */
+          float delay = aSeed * 0.6;
           float local = clamp((t - delay) / (1.0 - delay), 0.0, 1.0);
-          local = local * local * (3.0 - 2.0 * local);
+          /* Smootherstep, so each point eases out of the old form and into the
+             new one with no visible corner at either end. */
+          local = local * local * local * (local * (local * 6.0 - 15.0) + 10.0);
 
           vec3 pos = mix(position, aTarget, local);
 
-          /* A small arc mid-flight, so particles travel rather than slide.
-             Kept tight: a wide arc turns the transition into a faint smear
-             that reads as the figure disappearing. */
-          float arc = sin(local * 3.14159) * (0.04 + aSeed * 0.07);
+          /* Sample the curl field where the particle currently is. Being a
+             curl it is divergence-free, so the cloud eddies and swirls rather
+             than sliding along straight lines, and points loop around instead
+             of piling up. */
+          vec3 swirl = curlNoise(pos * uNoiseScale + vec3(uTime * uFlowSpeed));
+
+          /* Two strengths of the same field. Mid-flight it carries particles a
+             long way out of their lane — the pour from one figure into the
+             next. At rest a fraction of it keeps the figure alive, so a held
+             shape still breathes rather than sitting frozen. */
+          float flow = sin(local * 3.14159);
+          pos += swirl * flow * uFlow * (0.4 + aSeed);
+          pos += swirl * uDrift * (0.5 + aSeed);
+
+          /* A small arc on top, so every particle still travels rather than
+             slides. Kept tight now that the curl does most of the work. */
+          float arc = flow * (0.015 + aSeed * 0.03);
           pos += normalize(vec3(aSeed - 0.5, aSeed - 0.5, 0.35)) * arc;
 
           /* Slow drift, so the figure breathes when the scroll is still. */
@@ -210,14 +344,14 @@ function ParticleField() {
          Damped rather than set, so it glides. */
       let lift = 0
 
-      /* Every figure belongs to exactly one section, and each one gets a
-         `band` of scroll around that section where it is the visible figure.
-         Bands are measured from the DOM so they always match the real layout,
-         and they cannot overlap — which is what stops one section's shape
-         from appearing in the next. */
-      let bands = null
-      /* Each section's centre in document coordinates, kept separately from the
-         bands so the figure can be framed by the section every frame. */
+      /* Every figure belongs to one section, and the field walks them in order
+         as the reader scrolls. The journey from one figure to the next is not
+         owned by either section's "band" — it spans the whole distance between
+         the two sections' centres, so the particles flow the entire way rather
+         than reshuffling in a short window at a boundary. */
+      let scrollCentres = null
+      /* Each section's centre in document coordinates, so the figure can be
+         framed by the section every frame. */
       let docCentres = null
       const measureBands = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight
@@ -250,28 +384,14 @@ function ParticleField() {
         if (centres.length > 1 && centres[centres.length - 1] > max - 40) {
           centres[centres.length - 1] = Math.min(max * 0.94, max)
         }
-        /* Midpoints between consecutive section centres become the boundaries.
-           Each figure owns the stretch of scroll around its own section. */
-        const edges = centres.map((c, i) => (i === 0 ? 0 : (centres[i - 1] + c) / 2))
-        const last = centres.length - 1
-        edges.push(max)
-
-        bands = SHAPES.map((shape, i) => {
-          /* For the last section, which the page cannot scroll past, the band
-             is stretched backwards so the figure is still fully in view. */
-          const from =
-            shape.anchor === SHAPES[last].anchor && i === last
-              ? Math.max(edges[last] - (edges[last] - edges[last - 1]) * 0.9, 0)
-              : edges[i]
-          return { from, to: edges[i + 1], index: i }
-        })
+        scrollCentres = centres
         return true
       }
 
       const readScroll = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight
         targetProgress = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0
-        if (!bands) measureBands()
+        if (!scrollCentres) measureBands()
       }
 
       /* The figure is drawn at the origin of a fixed canvas, so it sits in the
@@ -302,121 +422,75 @@ function ParticleField() {
       }
 
       /* Per-frame: ease towards the scroll target, then work out which figure
-         owns this part of the page and how far through its band we are.
+         the reader is on and how far they have travelled towards the next.
          `snap` places the figure without the easing, for the single frame
          drawn when the reader has asked for reduced motion. */
       const updateMorph = (snap = false) => {
         progress += (targetProgress - progress) * 0.09
-        if (!bands && !measureBands()) return
+        if (!scrollCentres && !measureBands()) return
 
         const y = progress * (document.documentElement.scrollHeight - window.innerHeight)
-        /* Find the band the reader is in. */
-        let active = bands[bands.length - 1]
-        for (const band of bands) {
-          if (y < band.to) {
-            active = band
-            break
-          }
-        }
+        const centres = scrollCentres
+        const last = centres.length - 1
 
-        if (active.index !== currentIndex) {
-          currentIndex = active.index
+        /* Which journey the reader is on: the stretch between two neighbouring
+           sections. The figure shown is that stretch's start shape; the one it
+           flows into is its end shape. */
+        let index = 0
+        for (let i = 0; i < last; i++) {
+          if (y >= centres[i]) index = i
+        }
+        index = Math.min(index, last - 1)
+
+        if (index !== currentIndex) {
+          currentIndex = index
           /* Swap the pair the shader interpolates between. Only happens when
-             the reader crosses into a different figure, and the shapes stay
-             cached around it. */
-          position.array.set(shapeAt(currentIndex))
+             the reader crosses into a new journey, and the shapes stay cached
+             around it. */
+          position.array.set(shapeAt(index))
           position.needsUpdate = true
           const target = geometry.getAttribute('aTarget')
-          target.array.set(shapeAt(Math.min(currentIndex + 1, SHAPES.length - 1)))
+          target.array.set(shapeAt(index + 1))
           target.needsUpdate = true
-          prune(currentIndex)
+          prune(index)
         }
 
-        /* Within the band the figure rises, holds, then hands over: the shape
-           is only fully formed while its own section is on screen, and it is
-           gone by the time the next section takes over. `raw` is measured
-           against the middle of the band, so the hold lands on the section
-           itself rather than on the edge. */
-        const span = Math.max(active.to - active.from, 0.0001)
-        const raw = Math.min(Math.max((y - active.from) / span, 0), 1)
-        /* Centre of this band, which lines up with the section it belongs to. */
-        const mid = (active.from + active.to) / 2
-        const half = Math.max((active.to - active.from) / 2, 1)
-        /* Signed distance from the section's centre, -1 at one edge to +1 at
-           the other. Zero means the figure is settled on its own section. */
-        const centred = Math.min(Math.max((y - mid) / half, -1), 1)
-        const RAMP = 0.55
-
-        /* The first and last bands sit against the ends of the document, where
-           there is no neighbouring section to fade toward: the top of the page
-           is the entry state and the bottom is where the scroll stops. Ramping
-           them away from full presence is what left the opening sphere and the
-           closing signal invisible — `centred` is pinned to exactly -1 and +1
-           there, which drives presence to zero, and a figure drawn at zero
-           presence is no figure at all. Both ends hold instead; the closing
-           section's presence is judged on its own terms further down. */
-        const isFirst = active.index === 0
-        const isFinal = active.index === bands.length - 1
+        /* How far along the journey: 0 at this section's centre, 1 at the
+           next's. Measured between centres — not between a band edge and a
+           boundary — the morph spans almost the whole distance between two
+           sections, so the particles flow for the entire scroll rather than
+           reshuffling in a short window. The shape holds near each end of the
+           journey, so it reads while its own section is on screen. */
+        const from = centres[index]
+        const to = centres[index + 1]
+        const t = Math.min(Math.max((y - from) / Math.max(to - from, 0.0001), 0), 1)
+        const HOLD = 0.15
+        const morph = smoothstep(
+          Math.min(Math.max((t - HOLD) / (1 - 2 * HOLD), 0), 1)
+        )
 
         /* Where the field's canvas sits on screen, and how tall it is. Read once
-           a frame and shared by the figure's placement and the closing ramp. */
+           a frame and shared by the figure's placement. */
         const rect = container.getBoundingClientRect()
         const h = rect.height || 1
 
-        /* `position` holds this section's figure and `aTarget` the next one, so
-           morph 0 shows this section and morph 1 shows the next. The hold
-           therefore sits at 0 — settling on 1 is exactly what made every
-           section display its neighbour. */
-        let morph
-        let presence
-        if (centred < -RAMP) {
-          /* Arriving: this section's figure fades up. */
-          const t = (centred + 1) / (1 - RAMP)
-          morph = 0
-          presence = isFirst ? 1 : smoothstep(t * 1.3)
-        } else if (centred > RAMP) {
-          /* Leaving: cross into the next figure while fading down, so the
-             next section's shape is already formed when its turn begins. The
-             last band has no next figure to hand over to — morphing there only
-             mixes the signal with itself — so it simply stays lit. */
-          const t = (centred - RAMP) / (1 - RAMP)
-          morph = isFinal ? 0 : smoothstep(t)
-          presence = isFinal ? 1 : 1 - smoothstep(t * 1.3)
-        } else {
-          /* Settled: the figure holds, fully formed, on its own section. */
-          morph = 0
-          presence = 1
-        }
-
-        /* The closing section is the one case the band math cannot judge: the
-           page stops scrolling before contact's centre ever reaches the middle
-           of the screen, so `centred` reads as settled while the section is
-           still climbing into view — which is what left the signal sitting in
-           the skills section. Presence is taken from where the section itself
-           has got to, the same question the figure's position now asks. */
-        if (isFinal) {
-          morph = 0
-          presence = smoothstep(
-            Math.min(Math.max((h - sectionCentre(active.index, rect, h)) / (h * 0.3), 0), 1)
-          )
-        }
-
+        /* The morph is the transition, never a fade: the matter is always on
+           screen, pouring from one form into the next. */
         material.uniforms.uMorph.value = morph
-        material.uniforms.uPresence.value = presence
-        /* The figure turns and tips as the reader moves through its band, so
+        material.uniforms.uPresence.value = 1
+        /* The figure turns and tips as the reader moves along the journey, so
            the scroll itself animates the object instead of only swapping it.
-           Measured within the band, so each figure is re-oriented on arrival. */
-        material.uniforms.uSpin.value = (raw - 0.5) * 0.9
-        material.uniforms.uTilt.value = (raw - 0.5) * 0.5
+           Measured between the two centres, so each figure is re-oriented as
+           its journey begins. */
+        material.uniforms.uSpin.value = (t - 0.5) * 0.9
+        material.uniforms.uTilt.value = (t - 0.5) * 0.5
 
-        /* The figure sits over the centre of its own section, and slides from
-           one to the next in step with the morph so the handover happens with
-           the section rather than in the gap between two. Damped like the
-           scroll, so a flick of the wheel glides it into place instead of
-           snapping. */
-        const next = Math.min(active.index + 1, SHAPES.length - 1)
-        const here = sectionLift(active.index, rect, h)
-        const goal = here + (sectionLift(next, rect, h) - here) * morph
+        /* The figure sits over the centre of its own section, and slides to the
+           next in step with the morph, so the handover happens with the section
+           rather than in the gap between two. Damped like the scroll, so a
+           flick of the wheel glides it into place instead of snapping. */
+        const here = sectionLift(index, rect, h)
+        const goal = here + (sectionLift(index + 1, rect, h) - here) * morph
         lift += (goal - lift) * (snap ? 1 : 0.12)
         points.position.y = lift
       }
@@ -487,8 +561,8 @@ function ParticleField() {
           camera.updateProjectionMatrix()
           renderer.setSize(w, h)
         }
-        /* Section offsets move when text reflows, so the bands are re-read. */
-        bands = null
+        /* Section offsets move when text reflows, so they are re-read. */
+        scrollCentres = null
         measureBands()
       })
       resizeObserver.observe(container)

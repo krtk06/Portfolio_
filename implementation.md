@@ -256,6 +256,17 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-13 — the morph flows the whole way between sections instead of
+      flashing past. The transition was bound to a narrow tail of each scroll
+      band (~120–180px) and preceded by a long static hold, so a figure only
+      reshuffled in a brief window and read as a swap, not a flow. The morph
+      is now measured between section centres: a figure holds near its own
+      centre, then pours across almost the entire gap into the next (~500px+).
+      The curl field is stronger mid-flight, and a fraction of it now runs
+      always so the field never looks frozen while a figure holds. Section
+      lead and pad widened (56–96px to 88–160px) so the gap between two
+      sections is where the flow happens, not over a section's copy. Verified
+      by sweeping the full scroll range at 1440x900
 - [x] U-12 — the field is genuinely 3D: orientation is applied in the vertex
       shader after the morph, driven by page scroll progress so the figure
       turns and tips continuously rather than snapping at each section. The

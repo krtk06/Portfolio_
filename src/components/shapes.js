@@ -18,6 +18,75 @@ const rand = (i, salt) => {
 const gauss = (i, salt) =>
   (rand(i, salt) + rand(i, salt + 1) + rand(i, salt + 2) - 1.5) / 1.5
 
+/* Interleave three 10-bit coordinates into one 30-bit Morton key, so a position
+   collapses to a single number that grows with how far along the space-filling
+   Z-curve it sits. Sorting by this key lays a figure out in a locally coherent
+   order: neighbours in the array are neighbours in space. */
+const morton = (x, y, z) => {
+  let key = 0
+  for (let b = 0; b < 10; b++) {
+    key |= ((x >> b) & 1) << (3 * b)
+    key |= ((y >> b) & 1) << (3 * b + 1)
+    key |= ((z >> b) & 1) << (3 * b + 2)
+  }
+  return key
+}
+
+/* Reorder a figure along its Morton curve.
+
+   Every shape is reordered the same way, so particle `i` of one figure and
+   particle `i` of the next tend to sit in the same region of space. When the
+   field interpolates the two, each point travels a short, direct path instead
+   of criss-crossing the scene — which is what makes the morph read as one
+   body of matter flowing rather than two point clouds swapping places.
+
+   The figure is normalised into its own bounding box before quantising, so a
+   wide shape and a tall one still map corner-to-corner onto each other. */
+export const orderAlongCurve = (points, count) => {
+  let minX = Infinity
+  let minY = Infinity
+  let minZ = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  let maxZ = -Infinity
+  for (let i = 0; i < count; i++) {
+    const x = points[i * 3]
+    const y = points[i * 3 + 1]
+    const z = points[i * 3 + 2]
+    if (x < minX) minX = x
+    if (x > maxX) maxX = x
+    if (y < minY) minY = y
+    if (y > maxY) maxY = y
+    if (z < minZ) minZ = z
+    if (z > maxZ) maxZ = z
+  }
+  const spanX = maxX - minX || 1
+  const spanY = maxY - minY || 1
+  const spanZ = maxZ - minZ || 1
+  const MAX = 1023
+
+  const keys = new Float64Array(count)
+  const order = new Int32Array(count)
+  for (let i = 0; i < count; i++) {
+    const qx = Math.round(((points[i * 3] - minX) / spanX) * MAX)
+    const qy = Math.round(((points[i * 3 + 1] - minY) / spanY) * MAX)
+    const qz = Math.round(((points[i * 3 + 2] - minZ) / spanZ) * MAX)
+    keys[i] = morton(qx, qy, qz)
+    order[i] = i
+  }
+  /* Ties broken by index, so the layout is identical on every load. */
+  const sorted = Array.from(order).sort((a, b) => keys[a] - keys[b] || a - b)
+
+  const out = new Float32Array(count * 3)
+  for (let r = 0; r < count; r++) {
+    const i = sorted[r]
+    out[r * 3] = points[i * 3]
+    out[r * 3 + 1] = points[i * 3 + 1]
+    out[r * 3 + 2] = points[i * 3 + 2]
+  }
+  return out
+}
+
 /* Fig 00 — a hollow sphere, the field at rest. */
 function sphere(count) {
   const out = new Float32Array(count * 3)

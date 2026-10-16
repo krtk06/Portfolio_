@@ -46,10 +46,13 @@
 
   /* The air between a section's start — its top edge, or the divider line
      above it — and its first line. Every section uses this same value, so each
-     one begins on the same line. `--section-pad` is the air *below* a section
-     and is a separate concern: it was already consistent and is unchanged. */
-  --section-lead: clamp(56px, 7vw, 96px);
-  --section-pad: clamp(56px, 7vw, 96px);
+     one begins on the same line. `--section-pad` is the air *below* a section.
+     Lead and pad are both generous so the gap between two sections is wide:
+     that gap is where the field flows from one figure into the next, and a
+     tight gap left the morph happening while a section's copy was still on
+     screen, which read as glitchy. */
+  --section-lead: clamp(88px, 10vw, 160px);
+  --section-pad: clamp(88px, 10vw, 160px);
   --container: 1200px;
   --gutter: 24px;
 
