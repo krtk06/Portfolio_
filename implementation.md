@@ -275,6 +275,18 @@ using real numbers, and work is presented as a dataset table.
       the shader but never written, so the rotation was frozen at zero. Each
       figure now owns a non-overlapping band of scroll, fades in and out
       within it, and turns and tips as it moves
+- [x] U-11 — no figure straddles a section boundary. The field is a fixed
+      canvas, so each figure sat in the middle of the screen while its own
+      section scrolled past it — the closing signal came to rest on the
+      skills/contact line, half in each section. Each figure is now offset by
+      the world distance between the middle of the canvas and the on-screen
+      centre of its section, damped like the scroll, so it travels with the
+      section it belongs to and slides between sections in step with the
+      morph. Contact is judged on where it has actually got to rather than
+      on its band: the page stops scrolling before its centre reaches the
+      middle of the screen, so the signal now fades up as contact itself
+      climbs into view. Verified by sweeping the full scroll range at
+      1440x900 and 1024x768
 - [x] U-10 — the field is actually visible: particle count raised to 14,000,
       point size and opacity increased, and the canvas brightness filter
       removed (it brightened the black background as much as the particles,

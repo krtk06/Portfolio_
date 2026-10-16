@@ -10,10 +10,6 @@ const smoothstep = (t) => {
   return x * x * (3 - 2 * x)
 }
 
-/* Scroll positions, as a fraction of the scrollable height, where each shape
-   should be fully formed. These line up with the sections on the home page. */
-const STOPS = [0, 0.18, 0.33, 0.5, 0.68, 0.84, 1]
-
 function ParticleField() {
   const containerRef = useRef(null)
   const initialized = useRef(false)
@@ -54,12 +50,16 @@ function ParticleField() {
       /* Figures are generated on demand, one ahead of the scroll, so opening
          the page does not pay for all seven at once. Each is normalised into
          the camera frame — otherwise a shape authored for a wide viewport
-         drifts out of a narrow one. */
-      const frame = 0.82
+         drifts out of a narrow one.
+         `frame` is how much of the camera's height a figure fills, and it is
+         per figure: a shape that read as too large in the right-hand column can
+         be set back without resizing the ones that were already right. */
+      const DEFAULT_FRAME = 0.82
       const built = new Map()
       const shapeAt = (i) => {
         if (built.has(i)) return built.get(i)
         const points = SHAPES[i].build(COUNT)
+        const frame = SHAPES[i].frame ?? DEFAULT_FRAME
         let maxX = 0
         let maxY = 0
         for (let k = 0; k < COUNT; k++) {
@@ -188,7 +188,7 @@ function ParticleField() {
           float r = length(gl_PointCoord - vec2(0.5));
           if (r > 0.5) discard;
           float alpha = (1.0 - r * 2.0) * 1.0 * vFade;
-          gl_FragColor = vec4(vec3(0.90, 0.92, 0.97) * 3.4, alpha);
+          gl_FragColor = vec4(vec3(0.80, 0.82, 0.86) * 0.95, alpha);
         }
       `,
         transparent: true,
@@ -206,6 +206,9 @@ function ParticleField() {
          continuous glide rather than a jump between two shapes. */
       let targetProgress = 0
       let progress = 0
+      /* Where the figure currently sits against its section, in camera space.
+         Damped rather than set, so it glides. */
+      let lift = 0
 
       /* Every figure belongs to exactly one section, and each one gets a
          `band` of scroll around that section where it is the visible figure.
@@ -213,6 +216,9 @@ function ParticleField() {
          and they cannot overlap — which is what stops one section's shape
          from appearing in the next. */
       let bands = null
+      /* Each section's centre in document coordinates, kept separately from the
+         bands so the figure can be framed by the section every frame. */
+      let docCentres = null
       const measureBands = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight
         if (max <= 0) return false
@@ -224,6 +230,10 @@ function ParticleField() {
           found.push(el)
         }
         if (found.some((el, i) => !el && SHAPES[i].anchor)) return false
+
+        docCentres = found.map((el) =>
+          el ? el.offsetTop + el.offsetHeight * 0.5 : 0
+        )
 
         /* The scroll offset at which each section's centre sits in the middle
            of the screen. Document offset minus half a viewport — comparing a
@@ -264,9 +274,38 @@ function ParticleField() {
         if (!bands) measureBands()
       }
 
+      /* The figure is drawn at the origin of a fixed canvas, so it sits in the
+         middle of the screen while its own section scrolls past — which is what
+         left a shape straddling the line between two sections. Instead each
+         figure is framed by the section it belongs to: `sectionCentre` is that
+         section's centre in canvas coordinates, and `sectionLift` is the world
+         distance from the middle of the canvas to it. Applied to the points
+         object, so the figure travels with the section instead of over the gap
+         between two.
+
+         Returned in camera-space units: screen y grows downward, world y grows
+         upward, hence the sign. */
+      const sectionCentre = (index, rect, h) => {
+        if (!docCentres || !docCentres[index]) return h / 2
+        const centre = docCentres[index] - window.scrollY - rect.top
+        /* Only a thin margin: a section arriving from below, or leaving at the
+           top, stops at the edge instead of taking the figure with it. Anything
+           more would pin the figure in place and undo the tracking. */
+        const margin = h * 0.08
+        return Math.min(Math.max(centre, margin), h - margin)
+      }
+      const sectionLift = (index, rect, h) => {
+        /* How much world height the camera sees at the figure's plane, and from
+           that the world distance of one screen pixel. */
+        const visible = 2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.z
+        return ((h / 2 - sectionCentre(index, rect, h)) * visible) / h
+      }
+
       /* Per-frame: ease towards the scroll target, then work out which figure
-         owns this part of the page and how far through its band we are. */
-      const updateMorph = () => {
+         owns this part of the page and how far through its band we are.
+         `snap` places the figure without the easing, for the single frame
+         drawn when the reader has asked for reduced motion. */
+      const updateMorph = (snap = false) => {
         progress += (targetProgress - progress) * 0.09
         if (!bands && !measureBands()) return
 
@@ -308,6 +347,22 @@ function ParticleField() {
         const centred = Math.min(Math.max((y - mid) / half, -1), 1)
         const RAMP = 0.55
 
+        /* The first and last bands sit against the ends of the document, where
+           there is no neighbouring section to fade toward: the top of the page
+           is the entry state and the bottom is where the scroll stops. Ramping
+           them away from full presence is what left the opening sphere and the
+           closing signal invisible — `centred` is pinned to exactly -1 and +1
+           there, which drives presence to zero, and a figure drawn at zero
+           presence is no figure at all. Both ends hold instead; the closing
+           section's presence is judged on its own terms further down. */
+        const isFirst = active.index === 0
+        const isFinal = active.index === bands.length - 1
+
+        /* Where the field's canvas sits on screen, and how tall it is. Read once
+           a frame and shared by the figure's placement and the closing ramp. */
+        const rect = container.getBoundingClientRect()
+        const h = rect.height || 1
+
         /* `position` holds this section's figure and `aTarget` the next one, so
            morph 0 shows this section and morph 1 shows the next. The hold
            therefore sits at 0 — settling on 1 is exactly what made every
@@ -318,18 +373,34 @@ function ParticleField() {
           /* Arriving: this section's figure fades up. */
           const t = (centred + 1) / (1 - RAMP)
           morph = 0
-          presence = smoothstep(t * 1.3)
+          presence = isFirst ? 1 : smoothstep(t * 1.3)
         } else if (centred > RAMP) {
           /* Leaving: cross into the next figure while fading down, so the
-             next section's shape is already formed when its turn begins. */
+             next section's shape is already formed when its turn begins. The
+             last band has no next figure to hand over to — morphing there only
+             mixes the signal with itself — so it simply stays lit. */
           const t = (centred - RAMP) / (1 - RAMP)
-          morph = smoothstep(t)
-          presence = 1 - smoothstep(t * 1.3)
+          morph = isFinal ? 0 : smoothstep(t)
+          presence = isFinal ? 1 : 1 - smoothstep(t * 1.3)
         } else {
           /* Settled: the figure holds, fully formed, on its own section. */
           morph = 0
           presence = 1
         }
+
+        /* The closing section is the one case the band math cannot judge: the
+           page stops scrolling before contact's centre ever reaches the middle
+           of the screen, so `centred` reads as settled while the section is
+           still climbing into view — which is what left the signal sitting in
+           the skills section. Presence is taken from where the section itself
+           has got to, the same question the figure's position now asks. */
+        if (isFinal) {
+          morph = 0
+          presence = smoothstep(
+            Math.min(Math.max((h - sectionCentre(active.index, rect, h)) / (h * 0.3), 0), 1)
+          )
+        }
+
         material.uniforms.uMorph.value = morph
         material.uniforms.uPresence.value = presence
         /* The figure turns and tips as the reader moves through its band, so
@@ -337,6 +408,17 @@ function ParticleField() {
            Measured within the band, so each figure is re-oriented on arrival. */
         material.uniforms.uSpin.value = (raw - 0.5) * 0.9
         material.uniforms.uTilt.value = (raw - 0.5) * 0.5
+
+        /* The figure sits over the centre of its own section, and slides from
+           one to the next in step with the morph so the handover happens with
+           the section rather than in the gap between two. Damped like the
+           scroll, so a flick of the wheel glides it into place instead of
+           snapping. */
+        const next = Math.min(active.index + 1, SHAPES.length - 1)
+        const here = sectionLift(active.index, rect, h)
+        const goal = here + (sectionLift(next, rect, h) - here) * morph
+        lift += (goal - lift) * (snap ? 1 : 0.12)
+        points.position.y = lift
       }
 
       if (!reducedMotion) {
@@ -383,7 +465,7 @@ function ParticleField() {
       if (reducedMotion) {
         readScroll()
         progress = targetProgress
-        updateMorph()
+        updateMorph(true)
         renderer.render(scene, camera)
       } else {
         start()
@@ -405,9 +487,9 @@ function ParticleField() {
           camera.updateProjectionMatrix()
           renderer.setSize(w, h)
         }
-        /* Section offsets move when text reflows, so the anchors are re-read. */
-        stops = null
-        measureStops()
+        /* Section offsets move when text reflows, so the bands are re-read. */
+        bands = null
+        measureBands()
       })
       resizeObserver.observe(container)
 

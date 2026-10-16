@@ -21,7 +21,7 @@ function SelectedWork() {
           {featuredProjects.length} featured of {projects.length} projects · {liveCount} live demos · source for all
         </p>
         <p className="work-more">
-          <Link to="/work" className="data-link">all five projects →</Link>
+          <Link to="/work" className="data-link">all {projects.length} projects →</Link>
         </p>
       </div>
     </section>

@@ -58,14 +58,6 @@ export default function WorkDetail() {
           </div>
         )}
 
-        <img
-          className="work-detail-image"
-          src={project.image}
-          alt={project.imageAlt}
-          width={project.imageWidth}
-          height={project.imageHeight}
-        />
-
         <div className="work-detail-body">
           <section className="work-detail-section">
             <h2>Problem</h2>

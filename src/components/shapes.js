@@ -7,9 +7,6 @@
  * which keeps the whole thing under a couple of kilobytes.
  */
 
-import { projects } from '../content/projects'
-import { skillDomains } from '../content/skills'
-
 /* Deterministic noise so a shape looks the same on every load. The result is
    clamped to [0, 1] — an unclamped hash can go negative, and feeding a
    negative into a fractional power yields NaN, which poisons the geometry. */
@@ -90,39 +87,55 @@ function dataFigure(count) {
   return out
 }
 
-/* Fig 02 — the projects, as a scatter of clusters. One cluster per project. */
-function projectScatter(count) {
+/* Fig 02 — a Lissajous figure for "selected work".
+   Two oscillations at a 3:2 ratio with a quarter-phase offset: the curve is a
+   figure that only exists once plotted, which is what this section's label
+   claims it is, and it never repeats into a blob the way a filled shape does.
+
+   The curve is traced as a bundle of strands rather than a single wire — each
+   strand offset slightly in phase, so the ribbon reads as several threads laid
+   down together. That is the argument: separate strands, one figure. Which
+   fits a portfolio of separate projects resolving into one body of work.
+
+   The scatter around each strand is deliberate. This budget is 14,000 points
+   and the material blends additively, so a tight curve would stack particles
+   into a blown-out white core while the lobe ends stay dark. Spreading each
+   point across the ribbon thins the overlap, so the figure carries an even
+   weight and stays legible as a curve rather than a glowing rope. */
+function lissajous(count) {
   const out = new Float32Array(count * 3)
-  const centers = projects.map((_, i) => [
-    ((i + 0.5) / projects.length - 0.5) * 1.7,
-    (i % 2 === 0 ? 0.3 : -0.3) + (i === 0 ? 0.12 : 0),
-  ])
+  const STRANDS = 5
+  const PER_STRAND = count / STRANDS
   for (let i = 0; i < count; i++) {
-    const c = centers[i % centers.length]
-    out[i * 3] = c[0] + gauss(i, 41) * 0.13
-    out[i * 3 + 1] = c[1] + gauss(i, 42) * 0.2
+    const strand = i % STRANDS
+    const step = Math.floor(i / STRANDS)
+    /* Phase advances fastest across strands and slowest along the curve, so
+       consecutive particles never land on the same point. Each strand walks the
+       full 2π, which closes the figure. */
+    const t = (step / PER_STRAND) * Math.PI * 2 + strand * 0.022
+    const phase = Math.PI / 2 + strand * 0.035
+    out[i * 3] = Math.sin(3 * t + phase) * 0.82 + gauss(i, 41) * 0.05
+    out[i * 3 + 1] = Math.sin(2 * t) * 0.72 + gauss(i, 42) * 0.05
     out[i * 3 + 2] = gauss(i, 43) * 0.08
   }
   return out
 }
 
-/* Fig 04 — four capability bars, one per skill domain, each as tall as the
-   number of tools it holds. */
-function capabilityBars(count) {
+/* Fig 04 — a specimen lattice, for "the toolkit". A halftone-style grid of
+   dense dots with clear gaps between them: no hierarchy and no bars, the sheet
+   reads the same from any side, which is what a flat list of names argues too.
+   Each node is a tight cluster so the 14k particle budget spends itself inside
+   the dots rather than filling the square between them. */
+function specimenGrid(count) {
   const out = new Float32Array(count * 3)
-  const total = skillDomains.reduce((sum, d) => sum + d.tools.length, 0)
-  const bars = skillDomains.map((d, i) => ({
-    x: ((i + 1) / (skillDomains.length + 1) - 0.5) * 1.75,
-    w: 0.16,
-    h: (d.tools.length / total) * 1.5,
-  }))
+  const NODES = 16
   for (let i = 0; i < count; i++) {
-    const b = bars[i % bars.length]
-    /* Fill from the baseline up, with a soft jitter along the top edge. */
-    const v = rand(i, 51)
-    out[i * 3] = b.x + (rand(i, 52) * 2 - 1) * b.w * 0.5
-    out[i * 3 + 1] = -0.75 + v * b.h
-    out[i * 3 + 2] = gauss(i, 53) * 0.05
+    const node = i % (NODES * NODES)
+    const gx = node % NODES
+    const gy = Math.floor(node / NODES)
+    out[i * 3] = ((gx + 0.5) / NODES - 0.5) * 1.1 + gauss(i, 51) * 0.016
+    out[i * 3 + 1] = ((gy + 0.5) / NODES - 0.5) * 1.1 + gauss(i, 52) * 0.016
+    out[i * 3 + 2] = gauss(i, 53) * 0.03
   }
   return out
 }
@@ -167,14 +180,17 @@ function signal(count) {
    `anchor` is the section each figure belongs to. `at` is how far into that
    section it is fully formed (0 = top edge, 1 = bottom edge). One figure per
    section: a second figure inside a section meant a mid-section morph, which
-   is what left shapes half-formed and unreadable. */
+   is what left shapes half-formed and unreadable.
+   `frame` is how much of the camera's height the figure fills — smaller is
+   further back. The three figures listed with an explicit frame were the ones
+   crowding the right-hand column; the rest keep the default. */
 export const SHAPES = [
   { id: 'sphere', label: 'Sphere', anchor: 'hero', at: 0.5, build: sphere },
-  { id: 'figure', label: 'Data figure', anchor: 'about', at: 0.45, build: dataFigure },
-  { id: 'scatter', label: 'Project scatter', anchor: 'work', at: 0.5, build: projectScatter },
-  { id: 'bars', label: 'Capability bars', anchor: 'skills', at: 0.45, build: capabilityBars },
+  { id: 'figure', label: 'Data figure', anchor: 'about', at: 0.45, frame: 0.7, build: dataFigure },
+  { id: 'lissajous', label: 'Lissajous figure', anchor: 'work', at: 0.5, frame: 0.7, build: lissajous },
+  { id: 'grid', label: 'Specimen grid', anchor: 'skills', at: 0.45, frame: 0.45, build: specimenGrid },
   /* Contact is the last section and the page cannot scroll far enough to
      centre it, so the signal is anchored where the field can still be read in
-     full — the run-up to contact, as the reader leaves the skills chart. */
-  { id: 'signal', label: 'Signal', anchor: 'contact', at: -0.6, build: signal },
+     full — the run-up to contact, as the reader leaves the toolkit grid. */
+  { id: 'signal', label: 'Signal', anchor: 'contact', at: -0.6, frame: 0.7, build: signal },
 ]

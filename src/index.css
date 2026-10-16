@@ -244,7 +244,15 @@ body.has-custom-cursor {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 120px var(--gutter) 44px;
+  /* The hero is a full-height opening screen, so its content is centred
+     vertically rather than starting on a section's lead line.
+     The inline padding is what puts the hero's text column on the same left
+     edge as every other section: `.section-inner` centres a `--container`
+     column inside the gutter, and this reproduces that inset exactly — the
+     gutter until the viewport is wide enough for the column to take over,
+     then half the leftover. `100%` rather than `100vw` so the scrollbar is
+     not counted, which would shift the hero a few pixels right of the rest. */
+  padding: 120px max(var(--gutter), calc((100% - var(--container)) / 2)) 44px;
   gap: var(--space-6);
   overflow: visible;
   position: relative;
@@ -421,7 +429,9 @@ body.has-custom-cursor {
   /* Transparent, so the fixed field behind it stays visible. The page
      background comes from <body> instead of being painted per section. */
   background: transparent;
-  padding: var(--section-pad) var(--gutter);
+  /* Lead above, pad below. Both resolve to the same rhythm, so the gap
+     between two consecutive sections is exactly two leads. */
+  padding: var(--section-lead) var(--gutter) var(--section-pad);
   margin: 0;
 }
 .section-inner {
@@ -480,14 +490,6 @@ body.has-custom-cursor {
   gap: var(--space-3);
   margin-bottom: var(--space-8);
 }
-.work-detail-image {
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  margin-bottom: var(--space-12);
-}
 .work-detail-body {
   max-width: 720px;
 }
@@ -545,7 +547,7 @@ body.has-custom-cursor {
   align-items: flex-start;
   text-align: left;
   border-top: 1px solid var(--line);
-  padding-top: var(--section-pad);
+  padding-top: var(--section-lead);
   padding-bottom: var(--section-pad);
   /* Transparent and below the field, like every other section: an opaque
      background here painted over the particles and hid the figure. */
@@ -561,78 +563,6 @@ body.has-custom-cursor {
   margin-top: var(--space-6);
   margin-bottom: var(--space-8);
 }
-/* ------------------------------------------------------------------ */
-/* Footer                                                              */
-/* ------------------------------------------------------------------ */
-
-.footer {
-  position: relative;
-  z-index: 20;
-  background: var(--bg);
-  border-top: 1px solid var(--line);
-  padding: var(--space-12) var(--gutter) var(--space-8);
-}
-.footer-top {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-8);
-  margin-bottom: var(--space-8);
-}
-.footer-brand-block {
-  display: grid;
-  gap: var(--space-2);
-}
-.footer-brand {
-  font-size: var(--type-micro);
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-.footer-name {
-  font-size: var(--type-small);
-  color: var(--text-muted);
-}
-.footer-nav,
-.footer-socials {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4) var(--space-6);
-}
-.footer-nav a,
-.footer-socials a {
-  font-size: var(--type-small);
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color var(--dur-micro);
-}
-.footer-nav a:hover,
-.footer-socials a:hover {
-  color: var(--text);
-}
-.footer-bottom {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-3);
-  border-top: 1px solid var(--line);
-  padding-top: var(--space-6);
-}
-.footer-copy,
-.footer-email {
-  font-size: var(--type-micro);
-  color: var(--text-muted);
-}
-.footer-email {
-  text-decoration: none;
-  transition: color var(--dur-micro);
-}
-.footer-email:hover {
-  color: var(--text);
-}
-
-
 .about-body {
   max-width: 720px;
 }
@@ -789,8 +719,16 @@ body.has-custom-cursor {
   gap: var(--space-4) var(--space-6);
   margin-top: var(--space-6);
 }
-/* The contact block was centred, which pushed it into the field's column.
-   It now lines up with every other section, on the left. */
+/* The contact block stays 660px wide so it never runs into the field's column,
+   but it now starts on the same left line as every other section. It used to
+   sit flush at the gutter, which put it 300px left of About, Work and Skills
+   on any wide screen. The inline padding reproduces the inset `.section-inner`
+   gets by centring a `--container` column, so the block lands on that line and
+   the 660px cap is measured from there. */
+.section-contact {
+  padding-left: max(var(--gutter), calc((100% - var(--container)) / 2));
+  padding-right: var(--gutter);
+}
 .section-contact .section-inner {
   max-width: 660px;
   margin: 0;
@@ -822,108 +760,36 @@ body.has-custom-cursor {
   z-index: 1;
   pointer-events: none;
 }
-/* No brightness filter here: it brightened the whole canvas including the
-   black background, which flattened the particles instead of lifting them. */
-.particle-field canvas {
-  display: block;
-}
 .particle-field canvas {
   display: block;
 }
 
-.domain-tabs {
+/* The pills sit inside the same 660px column as the work rows, so they never
+   run into the field's column on the right. */
+.skill-pills {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-8);
-  border-bottom: 1px dashed var(--line-strong);
-  padding-bottom: var(--space-4);
-}
-.domain-tab {
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: var(--space-2) var(--space-3);
-  margin-bottom: calc(-1 * var(--space-4) - 1px);
-  cursor: pointer;
-  transition: color var(--dur-micro), border-color var(--dur-micro);
-}
-.domain-tab:hover {
-  color: var(--text-secondary);
-}
-.domain-tab.is-active {
-  color: var(--text);
-  border-bottom-color: var(--text);
-}
-.domain-blurb {
-  max-width: 46ch;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-8);
-}
-.tool-list {
+  gap: var(--space-3) var(--space-2);
   list-style: none;
-  margin: 0 0 var(--space-8);
   padding: 0;
-  max-width: 560px;
+  margin: 0 0 var(--space-6);
+  max-width: 660px;
 }
-.tool-row {
-  display: grid;
-  grid-template-columns: 180px 1fr 76px;
-  gap: var(--space-4);
-  align-items: center;
-  padding: var(--space-2) 0;
-}
-.tool-name {
-  font-size: 15px;
+.skill-pill {
+  font-family: var(--font-mono);
+  font-size: var(--type-small);
   color: var(--text-secondary);
+  background: var(--tag-bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+  transition: color var(--dur-micro), border-color var(--dur-micro),
+    background var(--dur-micro);
 }
-.tool-bar {
-  height: 6px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  position: relative;
-}
-.tool-bar-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  min-width: 3px;
-  background: var(--text-secondary);
-  transition: width var(--dur-micro);
-}
-.tool-count {
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-  color: var(--text-muted);
-  text-align: right;
-}
-.domain-evidence {
-  display: flex;
-  flex-wrap: wrap;
-  max-width: 620px;
-  align-items: baseline;
-  column-gap: var(--space-4);
-  row-gap: var(--space-2);
-  margin-top: var(--space-2);
-  padding-top: var(--space-5);
-  border-top: 1px dashed var(--line-strong);
-}
-.domain-evidence-label {
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-right: var(--space-2);
-}
-.domain-evidence .data-link + .data-link::before {
-  content: "·";
-  color: var(--text-faint);
-  margin-right: var(--space-3);
+.skill-pill:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+  background: var(--surface-hover);
 }
 
 /* ------------------------------------------------------------------ */
@@ -969,16 +835,25 @@ body.has-custom-cursor {
     top: auto;
     bottom: 0;
   }
-  .tool-row {
-    grid-template-columns: 1fr;
-    gap: var(--space-1);
-  }
-  .tool-count {
-    text-align: left;
-  }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
-  .hero-content { padding: 100px var(--gutter) 44px; }
+  /* Same inset expression as the base rule, so the hero's text column stays
+     aligned with every other section across this range too. */
+  .hero-content {
+    padding: 100px max(var(--gutter), calc((100% - var(--container)) / 2)) 44px;
+  }
   .hero-text { flex: 0 0 55%; max-width: 55%; }
+}
+
+/* With the footer gone the closing section is the last thing on the page, so
+   the spacing underneath it is the only thing deciding how far the page can
+   overshoot its own heading. Measured at 1810x605 the heading landed 45px
+   above the top of the viewport — clipped, and behind the fixed nav. Adding
+   space here makes it worse, not better (300px of extra runway pushed the
+   heading to -313), so the trim goes the other way: the rhythm below the last
+   section gives way as the window gets shorter, which keeps the heading clear
+   of the nav without changing anything at normal desktop heights. */
+@media (min-width: 769px) and (max-height: 780px) {
+  .section-contact { padding-bottom: var(--space-3); }
 }

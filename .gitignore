@@ -27,3 +27,8 @@ dist/
 .agents/
 .commandcode/
 skills-lock.json
+
+# local screenshot / browser artifacts
+--full-page
+hero.png
+lighthouse.*

@@ -19,7 +19,7 @@ export const person = {
     linkedin: 'https://linkedin.com/in/kartheek-nistala',
     email: 'krtk2805@gmail.com',
     resume:
-      'https://drive.google.com/file/d/1ffmAjDZHEqA8k9MBI7XUOeU7omt2u6uW/view?usp=sharing',
+      'https://drive.google.com/file/d/1E3u3I_LilBlxm-8IZy3ExRpcIkcTPdMD/view?usp=sharing',
   },
 }
 

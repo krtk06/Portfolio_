@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
-import Footer from './components/Footer'
 import ParticleBackground from './components/ParticleBackground'
 import CustomCursor from './components/CustomCursor'
 import ScrollManager from './lib/scroll'
@@ -74,7 +73,6 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <Footer />
     </>
   )
 }
