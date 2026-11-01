@@ -4,7 +4,6 @@ function Skills() {
   return (
     <section className="section section-skills" id="skills">
       <div className="section-inner">
-        <p className="figure-label">Fig. 04 — The toolkit</p>
         <h2 className="section-heading">
           What the work<br />
           <span className="thin">was built with</span>

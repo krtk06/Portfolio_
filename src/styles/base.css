@@ -8,10 +8,12 @@
   box-sizing: border-box;
 }
 
+/* Wordmark only — Clash Display 600, subset to the four letters the mark
+   uses, so the brand face weighs less than a kilobyte. */
 @font-face {
-  font-family: "Molen Friend";
-  src: url("/MolenFriendDemo.otf") format("opentype");
-  font-weight: 400;
+  font-family: "Clash Display";
+  src: url("/fonts/clash-display-600.woff2") format("woff2");
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
 }

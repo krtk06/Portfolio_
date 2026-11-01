@@ -6,7 +6,6 @@ function Experience() {
   return (
     <section className="section section-experience" id="experience">
       <div className="section-inner">
-        <p className="figure-label">Fig. 03 — Experience</p>
         <h2 className="section-heading">
           Where I have <span className="thin">worked</span>
         </h2>

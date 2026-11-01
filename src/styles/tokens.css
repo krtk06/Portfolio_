@@ -5,6 +5,7 @@
 :root {
   /* Colour */
   --bg: #020203;
+  --brand-yellow: #fece00; /* the supplied knot mark; the field's one warm accent */
   --text: #f5f5f5; /* primary copy, headings */
   --text-secondary: rgba(255, 255, 255, 0.72); /* ~10:1 — body copy */
   --text-muted: rgba(255, 255, 255, 0.58); /* ~6.8:1 — small labels, 12px+ */
@@ -22,7 +23,7 @@
   --font-display: "Instrument Serif", Georgia, serif;
   --font-sans: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
-  --font-brand: "Molen Friend", Georgia, serif;
+  --font-brand: "Clash Display", "Geist", sans-serif;
 
   --type-hero: clamp(44px, 8.5vw, 96px); /* hero name — locked in with the hero comp review */
   --type-section: clamp(1.75rem, 3.5vw, 2.5rem);

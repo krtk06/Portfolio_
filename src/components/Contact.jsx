@@ -18,7 +18,6 @@ function Contact() {
   return (
     <section className="section section-contact" id="contact">
       <div className="section-inner">
-        <p className="figure-label">Fig. 05 — Contact</p>
         <h2 className="section-heading">
           Let's build something<br />
           <span className="thin">measurable</span>

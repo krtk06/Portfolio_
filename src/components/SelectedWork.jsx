@@ -7,7 +7,6 @@ function SelectedWork() {
   return (
     <section className="section section-work" id="work">
       <div className="section-inner">
-        <p className="figure-label">Fig. 02 — Selected work</p>
         <div className="work-rows">
           {featuredProjects.map((project, index) => (
             <Link key={project.slug} to={`/work/${project.slug}`} className="work-row">
