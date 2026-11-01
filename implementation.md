@@ -256,6 +256,83 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-22 — the nav wordmark moves off the chunky Molen Friend demo onto
+      Clash Display 600, self-hosted and subset to the four letters the mark
+      uses (under 1 kB). The display grotesque gives the mark an
+      editorial/technical character without the playful demo face; the old
+      font asset and its @font-face are gone.
+- [x] U-21 — the "all projects" link carries the brand accent: yellow mono
+      text in a faint yellow-outlined pill, filling yellow on hover. It is the
+      section's one next step and no longer reads as another data caption.
+- [x] U-20 — the About copy is replaced with the owner's current framing: the
+      Spotify and Uber analyses under a Data label, and four evidence-first
+      product tools under Product (Retail Visual Search retired). The items
+      render as bordered lists rather than blocks of prose, and the column is
+      capped to stay clear of the field on narrower desktops.
+- [x] U-19 — the hero's role line, rule and mono proof line collapse into one
+      line: "Data Scientist - Hyderabad, India". The opening now reads name →
+      one locator → actions, without the rule and stat strip breaking up the
+      left column.
+- [x] U-18 — the contact signal moves from the amber-to-rose ramp to a pure
+      copper ramp: a warm ivory-copper core, a copper middle, and deep copper
+      outer rings. The rose cast was the odd note — it read as a second accent
+      rather than the same outgoing material. Copper keeps the signal warm and
+      ties it to the data figure's bronze without introducing pink.
+- [x] U-17 — the hero carries the supplied interlocking-knot mark, and the
+      mangrove/dryad drawing moves to Projects, taking the place of the
+      Lissajous (retired). Both are sampled from their artwork through the same
+      grid pipeline: the knot at 192x186 cells, tinted the reference's brand
+      yellow (#fece00); the tree unchanged at 253x256 in its own greens and
+      browns. Both supplied drawings sit at 75% of their frame so the marks
+      have more air around them than the broader field figures. The flat-figure flag now belongs to any
+      supplied drawing, not
+      just index 0: `uStill` interpolates between the two ends of each morph, so
+      the tree settles square-on in Projects without snapping its orientation
+      at the handover. A viewport-width fit cap shrinks a figure uniformly when
+      the field column is narrower than its frame, and Projects moves its
+      outcome under the project name between 769 and 1199px, keeping the denser
+      tree clear of the rows. Verified at 1440x900 and 1024x768; console clean.
+- [x] U-16 — the figures carry colour chosen for what each one means, instead
+      of all being white. The data figure warms from bronze at its base to ivory
+      at the head ("measured in warm light"); the Lissajous gives each of its
+      five strands its own cool hue (mint, sky, periwinkle, lilac, rose) — the
+      separate threads resolving into one body of work; the specimen grid runs a
+      mint-to-indigo ramp across the sheet so it reads as a chart with an axis;
+      the contact signal runs from a warm core to deep outer rings, like
+      something sent outward (originally amber-to-rose; now copper, U-18).
+      Colour is carried per particle (aColor /
+      aTargetColor) and interpolated during the morph, and is permuted with the
+      Morton order so each point keeps its own colour. (The Lissajous was later
+      retired for the Projects tree; see U-17.) Verified at 1440x900 across
+      every section and through the transitions; 40fps in the software renderer
+- [x] U-15 — the transition stops stuttering during a fast scroll. Three
+      causes: a figure was generated on the frame the reader crossed into its
+      section (a 14,000-point cloud plus a Morton sort, tens of milliseconds,
+      landing exactly when scrolling is fastest), the loop read
+      `getBoundingClientRect` and `scrollHeight` every frame and forced a
+      reflow, and the scroll easing used a fixed fraction per frame, so it
+      drifted between refresh rates and lagged a fast scroll before catching up
+      in a jump. Figures are now pre-warmed across idle callbacks, the scroll
+      length and canvas rect are cached and only re-read on resize, and the
+      easing uses a time constant (`1 - exp(-dt / tau)`) so it feels the same
+      at 60 and 120Hz and tracks a fast scroll instead of falling behind.
+      Verified by scripting a full-page scroll and watching for long frames and
+      console errors, and by jumping straight to the foot of the page, where
+      the final signal now builds with no hitch
+- [x] U-14 — the supplied mangrove/dryad logo is sampled directly from the
+      artwork rather than approximated. The image was converted to a compact
+      grid (scripts/reference-to-grid.py): a 253x256 cell grid, 15 colours, four
+      bits per cell, packed into src/content/reference.js (~43 kB). shapes.js
+      decodes it, takes a deterministic sample of the drawn cells, and drops one
+      particle per cell with that cell's colour, so every leaf, the dryad, the
+      trunk and the roots land where they do in the source. Colours are carried
+      per particle and interpolated during the morph, and the drawing is flagged
+      flat: while it is at rest the scroll turn and idle drift fade to zero so
+      the logo is shown square-on and still. It originally anchored the hero; it
+      now anchors Projects (U-17). Verified in the browser at 1440x900: matches
+      the artwork, 47fps in the software renderer. Note the asset is a pngtree
+      free download — its licence should be checked before this ships on a
+      public portfolio
 - [x] U-13 — the morph flows the whole way between sections instead of
       flashing past. The transition was bound to a narrow tail of each scroll
       band (~120–180px) and preceded by a long static hold, so a figure only
