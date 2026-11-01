@@ -9,33 +9,34 @@ const sections = [
   { id: 'contact', label: 'Contact' },
 ]
 
+const scrollTop = () =>
+  typeof document === 'undefined'
+    ? 0
+    : document.body.scrollTop || document.documentElement.scrollTop || window.scrollY || 0
+
 function Navbar() {
-  const [scrolled, setScrolled] = useState(false)
+  /* Read the restored scroll position once, when state is created, rather
+     than setting it from an effect on mount. */
+  const [scrolled, setScrolled] = useState(() => scrollTop() > 80)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
   const location = useLocation()
   const navigate = useNavigate()
   const isHome = location.pathname === '/'
+  /* The scroll observer only runs on the home page, so the active marker is
+     derived from the route rather than reset from an effect. */
+  const visibleSection = isHome ? activeSection : ''
 
   useEffect(() => {
-    const getScrollTop = () =>
-      document.body.scrollTop || document.documentElement.scrollTop || window.scrollY || 0
+    const handleScroll = () => setScrolled(scrollTop() > 80)
 
-    const handleScroll = () => {
-      setScrolled(getScrollTop() > 80)
-    }
-
-    handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true, capture: true })
     return () => window.removeEventListener('scroll', handleScroll, { capture: true })
   }, [])
 
   /* Highlight the section currently in view. */
   useEffect(() => {
-    if (!isHome) {
-      setActiveSection('')
-      return
-    }
+    if (!isHome) return
 
     const elements = sections
       .map(({ id }) => document.getElementById(id))
@@ -114,8 +115,8 @@ function Navbar() {
           <a
             key={id}
             href={`#${id}`}
-            className={activeSection === id ? 'active' : undefined}
-            aria-current={activeSection === id ? 'true' : undefined}
+            className={visibleSection === id ? 'active' : undefined}
+            aria-current={visibleSection === id ? 'true' : undefined}
             onClick={(e) => handleNavClick(e, id)}
           >
             {label}

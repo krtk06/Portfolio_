@@ -2,6 +2,8 @@
  * Person tokens — the single place person-specific content lives.
  */
 
+import { deployments } from './deployments.js'
+
 export const person = {
   name: 'Kartheek Nistala',
   shortName: 'krtk',
@@ -65,7 +67,7 @@ export const person = {
 }
 
 export const site = {
-  url: 'https://www.krtk.xyz',
+  url: deployments.site,
   description:
     'Data Scientist / Data Engineer in Hyderabad — 110k+ records analysed across analysis notebooks and deployed AI apps, with case studies, live demos and source code.',
 }

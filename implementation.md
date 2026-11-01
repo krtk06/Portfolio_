@@ -256,6 +256,12 @@ using real numbers, and work is presented as a dataset table.
       mono data captions, dashed annotation rules
 - [x] U-3 — content reframing: work as a dataset table (home and /work), case
       studies as experiment write-ups, contact as mono links
+- [x] U-23 — the aislop gate reports zero errors: react-router-dom is upgraded
+      to 7.18.5 (production dependency audit clean), the navbar derives its
+      initial scroll and active-section state instead of setting state
+      synchronously from effects, and deployment-specific URLs are centralized
+      in src/content/deployments.js with VITE_* overrides. Score 88/100; the
+      remaining warnings are the particle engine's complexity thresholds.
 - [x] U-22 — the nav wordmark moves off the chunky Molen Friend demo onto
       Clash Display 600, self-hosted and subset to the four letters the mark
       uses (under 1 kB). The display grotesque gives the mark an

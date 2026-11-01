@@ -11,6 +11,8 @@
  * arrives (charts, deeper results).
  */
 
+import { deployments } from './deployments.js'
+
 export const projects = [
   {
     slug: 'retract',
@@ -127,7 +129,7 @@ export const projects = [
     outcome: '10+ components • live on Vercel',
     tags: ['React', 'Gemini API', 'Stripe'],
     repo: 'https://github.com/krtk06/Chaty',
-    live: 'https://chaty-krtk.vercel.app/',
+    live: deployments.chaty,
     featured: true,
     detail: {
       problem: [
@@ -153,7 +155,7 @@ export const projects = [
     outcome: 'Match scoring out of 10 • live demo',
     tags: ['Python', 'FastAPI', 'spaCy', 'React'],
     repo: 'https://github.com/krtk06/ResumeAnalysis',
-    live: 'https://resume-analysis-ruddy.vercel.app',
+    live: deployments.resumeAnalysis,
     featured: false,
     detail: {
       problem: [
