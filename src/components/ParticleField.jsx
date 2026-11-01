@@ -47,20 +47,46 @@ function ParticleField() {
       const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100)
       camera.position.z = 3.4
 
-      /* Figures are generated on demand, one ahead of the scroll, so opening
-         the page does not pay for all seven at once. Each is normalised into
-         the camera frame — otherwise a shape authored for a wide viewport
-         drifts out of a narrow one.
+      /* Every figure is a point cloud at the same budget, normalised into the
+         camera frame — otherwise a shape authored for a wide viewport drifts
+         out of a narrow one.
          `frame` is how much of the camera's height a figure fills, and it is
          per figure: a shape that read as too large in the right-hand column can
          be set back without resizing the ones that were already right. */
       const DEFAULT_FRAME = 0.82
+      /* The field is a tall, narrow column, so a figure framed by its height
+         can be wider than the canvas at tablet widths. Shrinking the whole
+         cloud uniformly — rather than squashing its x — keeps a supplied
+         drawing centred and undistorted when the column is at its narrowest;
+         wide desktop columns leave it at full size. */
+      const visibleHeight = 2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.z
+      const fitFor = (i) => {
+        /* Read the live aspect here, not once at init: a resize changes the
+           column's shape and the figure has to respond on the next frame. */
+        const widthLimit = ((visibleHeight * camera.aspect) / 2) * 0.92
+        const shape = SHAPES[i]
+        const frame = shape.frame ?? DEFAULT_FRAME
+        return Math.min(1, widthLimit / frame) * (shape.size ?? 1)
+      }
+      /* The field's own colour, used by every generated figure. The supplied
+         artwork brings its own palette. */
+      const WHITE = new Float32Array(COUNT * 3)
+      for (let i = 0; i < COUNT; i++) {
+        WHITE[i * 3] = 0.8
+        WHITE[i * 3 + 1] = 0.82
+        WHITE[i * 3 + 2] = 0.86
+      }
       const built = new Map()
       const shapeAt = (i) => {
         if (built.has(i)) return built.get(i)
-        /* Reorder along the Morton curve first, so every figure shares one
-           particle order and points travel short paths between shapes. */
-        const points = orderAlongCurve(SHAPES[i].build(COUNT), COUNT)
+        /* A figure may return positions alone, or positions with a colour per
+           particle. Reorder along the Morton curve first, so every figure
+           shares one particle order and points travel short paths between
+           shapes. */
+        const raw = SHAPES[i].build(COUNT)
+        const source = raw.points ?? raw
+        const ordered = orderAlongCurve(source, COUNT)
+        const points = ordered.points
         const frame = SHAPES[i].frame ?? DEFAULT_FRAME
         let maxX = 0
         let maxY = 0
@@ -76,20 +102,33 @@ function ParticleField() {
           points[k * 3 + 1] *= scale
           points[k * 3 + 2] *= scale
         }
-        built.set(i, points)
-        return points
-      }
-      /* Keep only the current and adjacent figures; drop the rest. */
-      const prune = (i) => {
-        for (const key of built.keys()) {
-          if (Math.abs(key - i) > 1) built.delete(key)
+        /* Colours are permuted by the same order, so each point keeps its own
+           colour and the pair stays attached through the morph. */
+        let colours = WHITE
+        if (raw.points) {
+          colours = new Float32Array(COUNT * 3)
+          for (let r = 0; r < COUNT; r++) {
+            const src = ordered.order[r]
+            colours[r * 3] = raw.colours[src * 3]
+            colours[r * 3 + 1] = raw.colours[src * 3 + 1]
+            colours[r * 3 + 2] = raw.colours[src * 3 + 2]
+          }
         }
+        const entry = { points, colours }
+        built.set(i, entry)
+        return entry
       }
 
+      const first = shapeAt(0)
+      const next = shapeAt(1)
       const geometry = new THREE.BufferGeometry()
-      const position = new THREE.BufferAttribute(new Float32Array(shapeAt(0)), 3)
+      const position = new THREE.BufferAttribute(new Float32Array(first.points), 3)
       geometry.setAttribute('position', position)
-      geometry.setAttribute('aTarget', new THREE.BufferAttribute(new Float32Array(shapeAt(1)), 3))
+      geometry.setAttribute('aTarget', new THREE.BufferAttribute(new Float32Array(next.points), 3))
+      const colour = new THREE.BufferAttribute(new Float32Array(first.colours), 3)
+      const colourTarget = new THREE.BufferAttribute(new Float32Array(next.colours), 3)
+      geometry.setAttribute('aColor', colour)
+      geometry.setAttribute('aTargetColor', colourTarget)
 
       /* Per-particle offsets give the morph a stagger, so a figure unfurls
          rather than sliding across as one solid block. */
@@ -122,6 +161,9 @@ function ParticleField() {
           uDrift: { value: DRIFT },
           uNoiseScale: { value: 1.2 },
           uFlowSpeed: { value: 0.22 },
+          /* 1 while the flat logo is at rest: it mutes the idle drift and the
+             scroll turn so the artwork is shown square-on and still. */
+          uStill: { value: 0 },
           /* Fades a figure out as its section is left, so it is never visible
              in the next section. */
           uPresence: { value: 0 },
@@ -134,6 +176,8 @@ function ParticleField() {
         },
         vertexShader: `
         attribute vec3 aTarget;
+        attribute vec3 aColor;
+        attribute vec3 aTargetColor;
         attribute float aSeed;
         attribute float aSize;
         uniform float uTime;
@@ -143,10 +187,12 @@ function ParticleField() {
         uniform float uSpin;
         uniform float uFlow;
         uniform float uDrift;
+        uniform float uStill;
         uniform float uNoiseScale;
         uniform float uFlowSpeed;
         ${useMouse ? 'uniform vec3 uMouse;' : ''}
         varying float vFade;
+        varying vec3 vColor;
 
         /* 3D simplex noise (Ashima / Stefan Gustavson). The field needs a
            smooth, cheap function of position to sample, and this is the usual
@@ -270,6 +316,7 @@ function ParticleField() {
           local = local * local * local * (local * (local * 6.0 - 15.0) + 10.0);
 
           vec3 pos = mix(position, aTarget, local);
+          vColor = mix(aColor, aTargetColor, local);
 
           /* Sample the curl field where the particle currently is. Being a
              curl it is divergence-free, so the cloud eddies and swirls rather
@@ -282,8 +329,9 @@ function ParticleField() {
              next. At rest a fraction of it keeps the figure alive, so a held
              shape still breathes rather than sitting frozen. */
           float flow = sin(local * 3.14159);
+          float calm = 1.0 - uStill;
           pos += swirl * flow * uFlow * (0.4 + aSeed);
-          pos += swirl * uDrift * (0.5 + aSeed);
+          pos += swirl * uDrift * (0.5 + aSeed) * calm;
 
           /* A small arc on top, so every particle still travels rather than
              slides. Kept tight now that the curl does most of the work. */
@@ -295,7 +343,7 @@ function ParticleField() {
             sin(uTime * 0.6 + aSeed * 6.28),
             cos(uTime * 0.5 + aSeed * 6.28),
             0.0
-          ) * 0.008;
+          ) * 0.008 * calm;
 
           ${useMouse ? `
           vec3 toMouse = pos - uMouse;
@@ -318,11 +366,12 @@ function ParticleField() {
       `,
         fragmentShader: `
         varying float vFade;
+        varying vec3 vColor;
         void main() {
           float r = length(gl_PointCoord - vec2(0.5));
           if (r > 0.5) discard;
           float alpha = (1.0 - r * 2.0) * 1.0 * vFade;
-          gl_FragColor = vec4(vec3(0.80, 0.82, 0.86) * 0.95, alpha);
+          gl_FragColor = vec4(vColor, alpha);
         }
       `,
         transparent: true,
@@ -332,6 +381,22 @@ function ParticleField() {
 
       const points = new THREE.Points(geometry, material)
       scene.add(points)
+
+
+
+      /* Build every figure up front, spread across idle callbacks. Generating
+         one is a 14,000-point cloud plus a Morton sort, and doing it on the
+         frame the reader crosses into a new section is exactly what showed up
+         as a stutter during a fast scroll. Pre-warming means a section change
+         only ever copies a buffer that already exists. */
+      let warm = 0
+      let disposed = false
+      const warmNext = () => {
+        if (disposed || warm >= SHAPES.length) return
+        shapeAt(warm++)
+        schedule(warmNext)
+      }
+      schedule(warmNext)
 
       const startTime = performance.now()
       let currentIndex = -1
@@ -353,9 +418,16 @@ function ParticleField() {
       /* Each section's centre in document coordinates, so the figure can be
          framed by the section every frame. */
       let docCentres = null
+      /* Scroll length and the canvas rect are read once per layout change and
+         cached here, so the per-frame loop never has to touch the DOM — a
+         layout read every frame is a reflow, and reflows are a stutter. */
+      let scrollMax = 0
+      let canvasRect = { top: 0, height: window.innerHeight }
       const measureBands = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight
         if (max <= 0) return false
+        scrollMax = max
+        canvasRect = container.getBoundingClientRect()
 
         const found = []
         for (const { anchor } of SHAPES) {
@@ -389,9 +461,9 @@ function ParticleField() {
       }
 
       const readScroll = () => {
-        const max = document.documentElement.scrollHeight - window.innerHeight
-        targetProgress = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0
         if (!scrollCentres) measureBands()
+        targetProgress =
+          scrollMax > 0 ? Math.min(Math.max(window.scrollY / scrollMax, 0), 1) : 0
       }
 
       /* The figure is drawn at the origin of a fixed canvas, so it sits in the
@@ -425,11 +497,19 @@ function ParticleField() {
          the reader is on and how far they have travelled towards the next.
          `snap` places the figure without the easing, for the single frame
          drawn when the reader has asked for reduced motion. */
-      const updateMorph = (snap = false) => {
-        progress += (targetProgress - progress) * 0.09
+       const updateMorph = (snap = false, dt = 1 / 60) => {
+        /* Frame-rate independent easing. The old fixed fraction per frame
+           drifted differently at 60 and 120Hz, and lagged so far behind a fast
+           scroll that it caught up in a visible jump. A time constant makes the
+           glide identical at any refresh rate and keeps it tracking the scroll. */
+        if (snap) {
+          progress = targetProgress
+        } else {
+          progress += (targetProgress - progress) * (1 - Math.exp(-dt / 0.08))
+        }
         if (!scrollCentres && !measureBands()) return
 
-        const y = progress * (document.documentElement.scrollHeight - window.innerHeight)
+        const y = progress * scrollMax
         const centres = scrollCentres
         const last = centres.length - 1
 
@@ -447,12 +527,19 @@ function ParticleField() {
           /* Swap the pair the shader interpolates between. Only happens when
              the reader crosses into a new journey, and the shapes stay cached
              around it. */
-          position.array.set(shapeAt(index))
+          const here = shapeAt(index)
+          const after = shapeAt(index + 1)
+          position.array.set(here.points)
           position.needsUpdate = true
           const target = geometry.getAttribute('aTarget')
-          target.array.set(shapeAt(index + 1))
+          target.array.set(after.points)
           target.needsUpdate = true
-          prune(index)
+          const currentColour = geometry.getAttribute('aColor')
+          currentColour.array.set(here.colours)
+          currentColour.needsUpdate = true
+          const targetColour = geometry.getAttribute('aTargetColor')
+          targetColour.array.set(after.colours)
+          targetColour.needsUpdate = true
         }
 
         /* How far along the journey: 0 at this section's centre, 1 at the
@@ -469,21 +556,38 @@ function ParticleField() {
           Math.min(Math.max((t - HOLD) / (1 - 2 * HOLD), 0), 1)
         )
 
-        /* Where the field's canvas sits on screen, and how tall it is. Read once
-           a frame and shared by the figure's placement. */
-        const rect = container.getBoundingClientRect()
+        /* Fit the figure to the field column at this viewport. Interpolated
+           with the morph, so the handover between two differently framed
+           figures is as smooth as the shapes themselves. */
+        const fit = fitFor(index) + (fitFor(index + 1) - fitFor(index)) * morph
+        points.scale.setScalar(fit)
+
+        /* The cached canvas rect, so the loop never triggers a reflow. */
+        const rect = canvasRect
         const h = rect.height || 1
+
+        /* The figure turns and tips as the reader moves along the journey, so
+           the scroll itself animates the object instead of only swapping it.
+           Measured between the two centres, so each figure is re-oriented as
+           its journey begins. */
+        /* The supplied drawings are flat: while one is the resting figure it
+           must sit square-on and still, so the turn and idle drift fade out as
+           it settles and back in as the reader leaves it. Interpolating between
+           the two ends of the journey keeps that handover continuous, instead
+           of snapping the orientation when the current figure swaps. */
+        const fromFlat = SHAPES[index].flat ? 1 : 0
+        const toFlat = SHAPES[index + 1].flat ? 1 : 0
+        const still = fromFlat + (toFlat - fromFlat) * morph
+        const spin = (t - 0.5) * 0.9 * (1 - still)
+        const tilt = (t - 0.5) * 0.5 * (1 - still)
+        material.uniforms.uStill.value = still
 
         /* The morph is the transition, never a fade: the matter is always on
            screen, pouring from one form into the next. */
         material.uniforms.uMorph.value = morph
         material.uniforms.uPresence.value = 1
-        /* The figure turns and tips as the reader moves along the journey, so
-           the scroll itself animates the object instead of only swapping it.
-           Measured between the two centres, so each figure is re-oriented as
-           its journey begins. */
-        material.uniforms.uSpin.value = (t - 0.5) * 0.9
-        material.uniforms.uTilt.value = (t - 0.5) * 0.5
+        material.uniforms.uSpin.value = spin
+        material.uniforms.uTilt.value = tilt
 
         /* The figure sits over the centre of its own section, and slides to the
            next in step with the morph, so the handover happens with the section
@@ -491,7 +595,8 @@ function ParticleField() {
            flick of the wheel glides it into place instead of snapping. */
         const here = sectionLift(index, rect, h)
         const goal = here + (sectionLift(index + 1, rect, h) - here) * morph
-        lift += (goal - lift) * (snap ? 1 : 0.12)
+        lift +=
+          (goal - lift) * (snap ? 1 : 1 - Math.exp(-dt / 0.09))
         points.position.y = lift
       }
 
@@ -519,10 +624,16 @@ function ParticleField() {
       let animationId = 0
       let running = false
 
+      let lastFrame = startTime
       const loop = () => {
         animationId = requestAnimationFrame(loop)
-        material.uniforms.uTime.value = (performance.now() - startTime) / 1000
-        updateMorph()
+        const now = performance.now()
+        /* Capped, so a dropped frame or a return to the tab does not ease in
+           one enormous step. */
+        const dt = Math.min((now - lastFrame) / 1000, 0.05)
+        lastFrame = now
+        material.uniforms.uTime.value = (now - startTime) / 1000
+        updateMorph(false, dt)
         if (useMouse) material.uniforms.uMouse.value.copy(mouse3D)
         renderer.render(scene, camera)
       }
@@ -568,6 +679,7 @@ function ParticleField() {
       resizeObserver.observe(container)
 
       return () => {
+        disposed = true
         stop()
         window.removeEventListener('scroll', readScroll)
         if (container.__removeMouseMove) container.__removeMouseMove()
