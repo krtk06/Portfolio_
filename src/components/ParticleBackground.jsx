@@ -16,11 +16,12 @@ function ParticleBackground() {
     const isMobile = window.innerWidth < 768
     const isTablet = window.innerWidth >= 768 && window.innerWidth <= 1024
 
-    const particleCount = isMobile ? 30 : isTablet ? 60 : 120
+    const particleCount = isMobile ? 30 : isTablet ? 60 : 80
     const useConnections = !isMobile
     const useMouseInteraction = !isMobile
     const mouseRadius = 120
     const connectionDist = 100
+    const frameInterval = 1000 / 24
 
     canvas.width = width
     canvas.height = height
@@ -81,40 +82,51 @@ function ParticleBackground() {
       particles.push(new Particle())
     }
 
+    /* One path, one stroke for every connection — far cheaper than stroking
+       each line separately. */
     function drawConnections() {
       if (!useConnections) return
+      ctx.beginPath()
       for (let i = 0; i < particles.length; i++) {
+        const a = particles[i]
         for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x
-          const dy = particles[i].y - particles[j].y
+          const b = particles[j]
+          const dx = a.x - b.x
+          const dy = a.y - b.y
           const dist = Math.sqrt(dx * dx + dy * dy)
 
           if (dist < connectionDist) {
-            const alpha = (1 - dist / connectionDist) * 0.15
-            ctx.beginPath()
-            ctx.moveTo(particles[i].x, particles[i].y)
-            ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`
-            ctx.stroke()
+            ctx.moveTo(a.x, a.y)
+            ctx.lineTo(b.x, b.y)
           }
         }
       }
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
+      ctx.stroke()
     }
 
+    let started = false
     let paused = false
+
     const handleVisibility = () => {
       paused = document.hidden
       if (paused) {
         cancelAnimationFrame(animationId)
-      } else {
-        animate()
+      } else if (started) {
+        animationId = requestAnimationFrame(animate)
       }
     }
     document.addEventListener('visibilitychange', handleVisibility)
 
-    function animate() {
+    let lastFrame = 0
+    function animate(now) {
       if (paused) return
       animationId = requestAnimationFrame(animate)
+
+      /* The constellation drifts slowly; a low frame rate is
+         indistinguishable and keeps the main thread free. */
+      if (now - lastFrame < frameInterval) return
+      lastFrame = now
 
       ctx.clearRect(0, 0, width, height)
 
@@ -126,7 +138,17 @@ function ParticleBackground() {
       drawConnections()
     }
 
-    animate()
+    /* Decorative only — start once the browser is idle so it never competes
+       with the first paint or with interaction. */
+    const schedule = typeof window.requestIdleCallback === 'function'
+      ? (fn) => window.requestIdleCallback(fn, { timeout: 1500 })
+      : (fn) => setTimeout(fn, 150)
+
+    schedule(() => {
+      if (started || document.hidden) return
+      started = true
+      animationId = requestAnimationFrame(animate)
+    })
 
     const handleMouseMove = (e) => {
       mouseX = e.clientX
@@ -157,7 +179,7 @@ function ParticleBackground() {
   }, [])
 
   return (
-    <div id="canvas-bg">
+    <div id="canvas-bg" aria-hidden="true">
       <canvas ref={canvasRef} id="particleCanvas"></canvas>
     </div>
   )

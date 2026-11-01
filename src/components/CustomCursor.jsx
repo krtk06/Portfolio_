@@ -4,22 +4,32 @@ function CustomCursor() {
   const cursorRef = useRef(null)
   const cursorDotRef = useRef(null)
   const [isHovering, setIsHovering] = useState(false)
-  const [isTouch, setIsTouch] = useState(false)
+  const [isActive, setIsActive] = useState(false)
 
   useEffect(() => {
-    const touchQuery = window.matchMedia('(pointer: coarse)')
-    setIsTouch(touchQuery.matches)
+    const coarsePointer = window.matchMedia('(pointer: coarse)')
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
 
-    const handlePointerChange = (e) => {
-      setIsTouch(e.matches)
+    const update = () => setIsActive(!coarsePointer.matches && !reducedMotion.matches)
+
+    update()
+    coarsePointer.addEventListener('change', update)
+    reducedMotion.addEventListener('change', update)
+    return () => {
+      coarsePointer.removeEventListener('change', update)
+      reducedMotion.removeEventListener('change', update)
     }
-
-    touchQuery.addEventListener('change', handlePointerChange)
-    return () => touchQuery.removeEventListener('change', handlePointerChange)
   }, [])
 
+  /* The native cursor is only hidden while the custom one is actually rendered. */
   useEffect(() => {
-    if (isTouch) return
+    if (!isActive) return
+    document.body.classList.add('has-custom-cursor')
+    return () => document.body.classList.remove('has-custom-cursor')
+  }, [isActive])
+
+  useEffect(() => {
+    if (!isActive) return
 
     const cursor = cursorRef.current
     const cursorDot = cursorDotRef.current
@@ -33,27 +43,26 @@ function CustomCursor() {
       }
     }
 
-    const handleMouseEnter = () => setIsHovering(true)
-    const handleMouseLeave = () => setIsHovering(false)
+    /* Grow only over things that are actually clickable. */
+    const handleMouseOver = (e) => {
+      if (e.target.closest('a, button')) setIsHovering(true)
+    }
+    const handleMouseOut = (e) => {
+      if (e.target.closest('a, button')) setIsHovering(false)
+    }
 
     document.addEventListener('mousemove', handleMouseMove)
-
-    const elements = document.querySelectorAll('a, button, .work-card, .skill-card')
-    elements.forEach((el) => {
-      el.addEventListener('mouseenter', handleMouseEnter)
-      el.addEventListener('mouseleave', handleMouseLeave)
-    })
+    document.addEventListener('mouseover', handleMouseOver)
+    document.addEventListener('mouseout', handleMouseOut)
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove)
-      elements.forEach((el) => {
-        el.removeEventListener('mouseenter', handleMouseEnter)
-        el.removeEventListener('mouseleave', handleMouseLeave)
-      })
+      document.removeEventListener('mouseover', handleMouseOver)
+      document.removeEventListener('mouseout', handleMouseOut)
     }
-  }, [isTouch])
+  }, [isActive])
 
-  if (isTouch) return null
+  if (!isActive) return null
 
   return (
     <>

@@ -1,0 +1,484 @@
+# implementation.md — Portfolio rebuild plan (ft/redesign)
+
+> The single source of truth for the redesign of krtk06.vercel.app / krtk.xyz.
+> Written to be readable by a human and executable phase by phase by an agent.
+> Status: Phase U (The Living Dataset) built and verified on the preview; awaiting owner sign-off before the merge, plus the pending content (Quiz Generator visibility, experience entries, résumé PDF, chart imagery). Branch: `ft/redesign` (off `main`). Last updated: 2026-09-23.
+> Execution: one phase at a time; a review stop at the end of every phase; commits per meaningful step as `feat:` / `fix:` / `update:` / `chore:`.
+
+---
+
+## 0. How to use this document
+
+**This document is the shared contract between the owner and the implementing agent.** After approval it is placed at the repository root as `implementation.md`; both copies are kept in sync (the repo copy is the working copy).
+
+**Working agreement (applies to every phase):**
+
+- **Quality over speed.** Each step is finished properly — verified in a browser and against this document — before moving on. Perfection of the output matters more than pace.
+- **One phase at a time.** Every phase in section 5 ends with a stop: finish it, present what changed with evidence, and wait. The next phase starts only when the owner explicitly says "proceed to next phase".
+- **Commit every meaningful step**, not just at phase boundaries. Every commit message is: one of `feat`, `fix`, `update`, `chore`, then `:`, then a single-line description.
+  - `feat:` a new capability · `fix:` a defect repair · `update:` a change to existing behavior, copy, or design · `chore:` repo hygiene, tooling, docs.
+  - Examples: `feat: add per-route metadata hook`, `fix: correct primary button hover state`, `chore: stop tracking dist`.
+  - Never include phase or step numbers in a commit message.
+- **Ask, never assume.** If a step needs information that is not in this document or not yet supplied (content, links, copy, credentials), stop and ask the owner before proceeding. Never invent facts, links, or numbers, and never ship placeholder copy.
+- **Production is sacred.** Phase 8 (merge to `main`, deploy) additionally requires the owner's explicit go-ahead, on top of the normal phase review.
+- Never commit `dist/` — Vercel builds from source.
+- Keep all site copy and project data in `src/content/`. Components render content; they never hardcode it.
+- Update the checkboxes, the Decisions log, and this working agreement here first, then in code.
+
+**Phase structure:** every phase has a goal, tasks (checkboxes), files, acceptance criteria, and a verify step.
+
+## 1. Goal and target scorecard
+
+**The site's job:** show a hiring manager, in under 30 seconds, that Kartheek Nistala does current, real Data Scientist / Data Engineer work — and then let them go as deep as they want (case studies, links, résumé).
+
+**Target:** raise the live site from the reviewed **6.5/10** to **9+**, measured by the same rubric used in the review.
+
+| Area | Now | Target | Measured by |
+|---|---|---|---|
+| Visual identity | 8.5 | 9 | Hero comps signed off; consistent tokens; no one-off values |
+| Typography | 8 | 9 | 3-step scale, no text under 12px, no unloaded font references |
+| Color / contrast | 5 | 9 | Every text token verified ≥ 4.5:1 (or ≥ 3:1 if large) |
+| Layout / spacing | 5.5 | 9 | Spacing scale tokens; no section taller than its content needs; responsive at 360–1440 |
+| Interaction / motion | 6 | 9 | Button hovers correct; reduced-motion honored; cursor guardrails |
+| Content / storytelling | 4 | 9.5 | 4+ projects with links and outcomes; about; experience; résumé in nav |
+| Accessibility | 3 | 9 | axe clean, full keyboard pass, focus visible everywhere |
+| Technical / SEO | 4 | 9 | Meta/OG per route, sitemap, zero broken links, perf budget met |
+| Mobile | 6.5 | 9 | Every section usable and intentional at 390px |
+| **Overall** | **6.5** | **9+** | Re-scored against this table after launch |
+
+**Definition of done (global gates, checked at Phase 8):**
+- Lighthouse (mobile + desktop): Performance ≥ 95, Accessibility 100, Best Practices 100, SEO 100.
+- No console errors or warnings in production build.
+- Every link on the site (internal and external) returns 200 and is meaningful.
+- Every project has at least one outcome token (scale / metric / shipped artifact) and a repo or demo link.
+- First-load JS ≤ 250 KB gzipped (three.js excluded via lazy chunk); LCP ≤ 2.5 s; CLS ≤ 0.05.
+- Keyboard-only pass completes every task; visible focus on every interactive element.
+- `prefers-reduced-motion` disables the sphere animation, the cursor, and reveals.
+
+## 2. Current state (verified during the review)
+
+**Production** = `main` @ `dade709` — the "v1" design: single-page dark portfolio, particle constellation background, 18k-particle three.js sphere, custom cursor, one-line tagline.
+
+Verified defects on production (full evidence list in Appendix A):
+1. Primary button ("View Work") becomes white-on-white on hover — fill layer paints behind the button background.
+2. `/my-work` returns a Vercel 404 on direct load (`main` has no `vercel.json`).
+3. Footer is invisible — a fixed gradient overlay paints over it.
+4. Navbar's scrolled state never activates — `window.scrollY` stays 0 because the page scrolls on `body`.
+5. Favicon `/vite.svg` 404s (file not in the build).
+6. No meta description, no Open Graph / Twitter tags, no robots.txt, no sitemap.
+7. Contrast failures in five places (10px skill labels ≈ 2.5:1, card descriptions ≈ 3.7:1, etc.).
+8. `* { outline: none !important }` removes all keyboard focus indicators.
+9. Misleading pointer cursor and cursor-growth on cards that are not clickable.
+10. Footer/bundle: 664 KB uncompressed JS; `THREE.Clock` deprecation warning.
+
+**Parked redesign** = tag `archive/ui-redesign` @ `551524e`. Reference only. Decision D1: not used as a base. A few ideas may be re-implemented from scratch where they are standard practice (SPA rewrite config, content-in-files pattern, per-route metadata).
+
+**This branch** = `ft/redesign`, created off `main`. `dist/` is currently tracked in git. `.agents/`, `.commandcode/`, `skills-lock.json` are untracked tooling artifacts.
+
+## 3. Decisions made during the conversation (log)
+
+- **D1 — Direction.** Fresh rebuild on the live look. Keep the dark canvas, Instrument Serif headlines, particle identity. The parked v2 (Trocchi / grid / banner-hero / light theme) is not reused.
+- **D2 — Blog.** Dropped for now. No `/blog` route until real write-ups exist.
+- **D3 — Content.** The owner has exact repo links, live demo URLs, chart/screenshot material, and additional projects beyond the current three. The plan assumes 4+ projects.
+- **D4 — Branching.** All redesign work happens on `ft/redesign`. `ft/ui-redesign` was deleted and archived at tag `archive/ui-redesign`.
+- **D5 — Stack.** Keep Vite + React 18 + react-router 6 + plain CSS driven by design tokens. No Tailwind. No new UI dependencies unless a phase justifies one.
+- **D6 — Theme.** Dark-only, matching the live look. No light theme for now.
+- **D7 — 3D.** Keep the particle sphere as the signature element, but: lazy-loaded chunk, adaptive particle count, device-pixel-ratio cap, pauses when off-screen and under reduced-motion, `THREE.Clock` replaced.
+- **D8 — Cursor.** Keep the custom cursor on fine pointers, with guardrails: disabled under reduced-motion, never over form fields, no hover-growth on non-clickable elements (or make those elements clickable).
+- **D9 — Build artifacts.** `dist/` stops being tracked; add to `.gitignore` along with tooling dirs.
+- **D10 — Deployment.** Merge to `main` only at Phase 8 with owner sign-off. Verify on krtk06.vercel.app and krtk.xyz afterwards.
+- **D11 — Canonical domain (resolved).** Canonical is `https://www.krtk.xyz` — the host that serves content today (the apex currently redirects to www). If the Vercel domain setting is flipped to prefer the apex, update `site.url` in `src/content/site.js` and the defaults in `index.html`; that is the only change needed.
+- **D12 — Execution workflow.** One phase at a time, with an owner review stop after every phase. Commits per meaningful step as `feat: / fix: / update: / chore:` plus a one-line description, with no phase or step numbers in messages. Missing information is raised as a question, never filled in by assumption.
+- **D13 — GitHub profile.** `github.com/krtk06` is the real account (verified via the GitHub API and the authenticated `gh` CLI). The old `github.com/krtk2` link on the live site 404s; every repository link now points at `github.com/krtk06`.
+- **D14 — Project link defaults.** Until a real `live` URL exists, the primary button on a case study points at the repository, labelled View on GitHub; supplying a `live` URL switches it to Live demo with Source code beside it. The owner will update the live URLs later.
+- **Open decisions** (each resolved by asking the owner when its phase arrives): résumé hosting (recommend `/resume.pdf` self-hosted, drop Google Drive), whether to add Geist Mono for data labels, experience content (real entries or hide the section).
+
+## 4. Architecture and technical decisions
+
+**Target repo layout**
+```
+src/
+  components/   Navbar, Hero, ParticleSphere, Background, Work (featured), WorkCard,
+                Skills, About, Experience, Contact, Footer, CustomCursor, ui/ (Button, Tag, Reveal)
+  content/      site.js (person, links, nav), projects.js, skills.js, experience.js
+  lib/          usePageMeta.js, scroll.js (ScrollManager), icons.jsx
+  pages/        Home.jsx, Work.jsx, WorkDetail.jsx, NotFound.jsx
+  styles/       tokens.css, base.css, utilities.css   (index.css imports them)
+public/         images/ (project art), resume.pdf, og-image.png, favicon set, robots.txt, sitemap.xml
+vercel.json     SPA rewrites + asset cache headers
+```
+
+**Routing.** `/` (home), `/work` (all projects), `/work/:slug` (case study), `*` (NotFound). All deep links must load directly — this is why `vercel.json` rewrites are Phase 0, not Phase 3.
+
+**Content model.** Plain JS modules under `src/content/` (no CMS). `projects.js`: slug, title, category, description, outcome, tags, images, repo, live, featured, detail { problem, approach, results }. Empty values hide their UI (never render placeholders).
+
+**Design tokens** (CSS custom properties in `src/styles/tokens.css`). Reference values:
+
+| Token | Value | Notes |
+|---|---|---|
+| `--bg` | `#020203` | keep |
+| `--text` | `#f5f5f5` | headings, primary copy |
+| `--text-secondary` | `rgba(255,255,255,0.72)` | ≈ 10:1, body/secondary copy |
+| `--text-muted` | `rgba(255,255,255,0.58)` | ≈ 6.8:1, small labels (min size 12px) |
+| `--text-faint` | `rgba(255,255,255,0.4)` | ≈ 3.7:1 — decorative and ≥ 24px text only |
+| `--line` / `--surface` | `rgba(255,255,255,0.08)` / `rgba(255,255,255,0.03)` | borders, cards |
+| Spacing scale | 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 | replaces the current 200/300/120 padding |
+| Section rhythm | 96–128 desktop, 64–96 mobile | vertical padding |
+| Container | max 1200px, 24px gutters (48px ≥ 768px) | one consistent shell |
+| Radii | 12 (cards), 100 (pills) | |
+| Motion | 150ms (micro), 250ms (hover), 600ms (reveal) | all disabled under reduced-motion |
+
+**Performance budget.** First-load JS ≤ 250 KB gzip; three.js lives in a dynamically imported chunk loaded after first paint; images shipped as WebP with explicit `width`/`height` and `loading="lazy"`; fonts: the two current Google families, preconnect kept.
+
+**Metadata.** A small `usePageMeta()` hook sets title, description, canonical, and OG tags per route (no new dependencies). `index.html` keeps sane defaults. JSON-LD `Person` schema added in Phase 7.
+
+## 5. Phase plan
+
+Every phase ends with a review stop: finish it, present the changes and evidence, and wait for the owner's "proceed to next phase".
+
+### Phase 0 — Foundation and baseline fixes
+**Goal:** a clean, deployable baseline with the reviewed defects fixed.
+
+- [x] `.gitignore`: add `dist/`, `.agents/`, `.commandcode/`, `skills-lock.json`; run `git rm -r --cached dist`.
+- [x] `vercel.json`: SPA rewrite `/(.*) → /index.html`; immutable cache headers for `/assets/*`.
+- [x] Fix defect 1 — button hover: restructure the fill so the label reads in both states (label in a `position:relative; z-index:1` span, or animate `background-color` directly).
+- [x] Fix defect 2 — deep links: with `vercel.json` in place, `/work`-style routes resolve; the old `/my-work` route is replaced in Phase 3.
+- [x] Fix defect 3 — footer visibility: remove the fixed gradient overlay from above the footer (scope the fade to the hero, or raise the footer above it).
+- [x] Fix defect 4 — navbar scrolled state: read the real scroll container (`document.body.scrollTop || window.scrollY`).
+- [x] Fix defect 5 — favicon: generate a favicon set from `avatar.png` (16/32/180px + `site.webmanifest`).
+- [x] Remove dead code: the `.reveal` opacity rules that never run, the `"Inter"` font reference (never loaded), the unused `.contact-email` rules that the component never renders.
+- [x] Replace `THREE.Clock` usage (deprecation warning) with `Timer` or manual elapsed time.
+- [x] Capture before/after screenshots of every fix.
+
+**Files:** `index.html`, `vercel.json`, `.gitignore`, `public/favicon*`, `src/index.css`, `src/components/{Navbar,Hero,Contact,Footer,ParticleSphere}.jsx`
+**Verify:** all ten defects from Appendix A re-tested in a browser; `npm run build` clean; screenshots stored.
+
+### Phase 1 — Tokens, type, and spacing system
+**Goal:** one token layer every component uses; the contrast policy enforced.
+
+- [x] Create `src/styles/tokens.css`, `base.css`, `utilities.css`; split `index.css`.
+- [x] Add the color, spacing, radius, and motion tokens from the table in section 4.
+- [x] Global base: `:focus-visible` outline (2px, 2px offset), `::selection`, `scroll-margin-top` for anchors, `prefers-reduced-motion` block, sensible defaults.
+- [x] Typography scale: display `clamp(2.5rem, 6vw, 4.5rem)`, section headings `clamp(1.75rem, 3.5vw, 2.5rem)`, body 1rem/1.7, small 0.875rem, micro 0.75rem minimum — nothing smaller.
+- [x] Refactor every component's hardcoded values to tokens; produce the contrast table (token → ratio) as verification evidence.
+
+**Verify:** contrast table; visual regression pass at 1440/390; no `rgba(255,255,255,0.3)`-class values left in components.
+
+### Phase 2 — Hero and identity (hero comps presented for sign-off mid-phase)
+**Goal:** the first screen states who you are and what you do, keeping the signature look.
+
+- [x] Copy: role line ("Data Scientist / Data Engineer — Hyderabad, India") + proof line (strongest scale/metric, e.g. "110k+ records analysed") + keep "Concept. Code. Deployment." as a small eyebrow, not the main message.
+- [x] Produce 3 hero comps as rendered screenshots (typography scale, tagline placement, sphere crop) and present for sign-off before locking.
+- [x] CTAs: "View Work" (primary, hover fixed in Phase 0) and "Download Résumé" (secondary) — résumé moves up from the buried icon.
+- [x] Sphere optimization: dynamic `import()` chunk, adaptive particle count (reduced below 1280px, static single frame under reduced-motion), DPR cap 1.5, pause when off-screen, keep drag interaction.
+- [x] Mobile hero: deliberate treatment without the sphere (tightened scale and spacing; no dead zones).
+- [x] Fix the misleading cursor growth (D8 guardrails).
+
+**Verify:** comps signed off; sphere chunk not in first-load graph; screenshots at 1440/768/390.
+
+### Phase 3 — Work section and case studies
+**Goal:** every project is explorable, linked, and proven.
+
+- [x] `src/content/projects.js` with 4+ projects: slug, category, description, outcome token, tags, repo, live, featured, detail { problem, approach, results }. No placeholders ship.
+- [ ] Home: "Selected Projects" grid — 4 featured cards, real imagery (charts/screenshots provided by owner, processed to WebP with dimensions), outcome line visible on the card, tag chips.
+- [x] `/work` index: all projects; simple category grouping; "All projects" entry point from home.
+- [x] `/work/:slug` case study: problem → approach → results, images with captions, repo/live links (hidden when null), prev/next navigation.
+- [x] Cards are real links (fixes the misleading-affordance problem); cards → detail page; links open in new tabs where external.
+- [x] Image pipeline: convert owner-provided material, consistent aspect ratios, alt text.
+
+**Verify:** every direct URL loads (deep-link test); every project has ≥ 1 outcome and ≥ 1 working link; keyboard reachable.
+
+### Phase 4 — Skills, About, Experience, Résumé
+**Goal:** the supporting evidence hiring managers scan for.
+
+- [x] Skills: grouped and data-weighted (Modeling: Python, Pandas, NumPy, scikit-learn, Matplotlib / Data & Infra: SQL, MongoDB, AWS, Docker, Git / Apps: React, Node, JavaScript, TypeScript). Labels ≥ 12px and ≥ 4.5:1.
+- [x] About: 2–3 short paragraphs (what you do, how you work, current focus).
+- [x] Experience: real entries or hidden entirely (owner supplies company/title/dates/bullets, or confirms none).
+- [ ] Résumé: self-host `/resume.pdf` (recommended over Google Drive), linked from nav, hero, and contact.
+- [x] Display the email address as text with a copy-to-clipboard button.
+
+**Verify:** content checklist (section 6) fully ticked; nothing placeholder-shaped on the page.
+
+### Phase 5 — Contact, footer, and navigation chrome
+**Goal:** the closing sections and the persistent frame.
+
+- [x] Contact section order: heading → short blurb → primary action → email text → social icons.
+- [x] Footer: visible (defect 3), real content — name, nav links, email, socials, copyright with current year.
+- [x] Navbar: scrolled state working (defect 4), active-section indication, résumé link as text, mobile menu behavior verified (links scroll and close the menu).
+- [x] NotFound page for unknown routes (styled, links home).
+
+**Verify:** nav walkthrough on desktop and mobile; footer visible at both ends of every page; 404 route renders.
+
+### Phase 6 — Accessibility and motion hardening
+**Goal:** the accessibility score moves from 3 to 9.
+
+- [x] Inject axe-core via agent-browser and fix every violation (run on /, /work, /work/:slug, 404).
+- [x] Keyboard pass: skip link, logical order, focus visible on every control, menu operable with Enter/Escape, no focus traps.
+- [x] Contrast re-verification against the Phase 1 table; fix stragglers.
+- [x] Cursor policy (D8) verified; reduced-motion pass (sphere static, no reveals, no cursor).
+- [x] Landmarks and aria: header/nav/main/footer, `aria-current` on active nav item, image alts, external-link cues.
+
+**Verify:** axe report zero violations; keyboard checklist complete; reduced-motion screenshots.
+
+### Phase 7 — Performance and SEO
+**Goal:** the technical score moves from 4 to 9.
+
+- [x] Code-split routes + lazy sphere; verify first-load JS ≤ 250 KB gzip; remove unused CSS.
+- [x] Lighthouse mobile and desktop runs; fix until ≥ 95/100/100/100.
+- [x] Per-route metadata via `usePageMeta()`: title, description, canonical, OG/Twitter; generate a real `og-image.png` (1200×630).
+- [x] `robots.txt`, `sitemap.xml` (all routes), JSON-LD `Person`, `theme-color`.
+- [x] Canonical host decision (D11): pick `krtk.xyz` or `www.krtk.xyz`, configure the redirect, set canonicals accordingly.
+- [x] Cache headers for assets; verify font loading strategy.
+
+**Verify:** Lighthouse reports (both form factors); OG preview check; sitemap lists every project URL.
+
+### Phase U — The Living Dataset (uniqueness redesign)
+
+Research: Muzli's 100 most creative portfolios of 2026, Colorlib's 21 best
+developer portfolios, and a browser pass over godly.website, andrevv.com,
+brittanychiang.com and the Awwwards portfolio category. Pattern found: unique
+sites carry one signature mechanism through the whole site — they are places,
+not layouts.
+
+Decision: **The Living Dataset** — the site itself is a data visualization. The
+particle field stops being decoration and becomes the content: on scroll it
+morphs between figures (sphere → project scatter → capability bars → timeline),
+sections are framed as research figures (Fig. 00–05) with monospace captions
+using real numbers, and work is presented as a dataset table.
+
+- [x] U-R — visual research pass in the browser (screenshots archived)
+- [x] U-D — design comps built as scroll prototypes; the owner picked
+      Comp 1 (Living Dataset)
+- [x] U-1 — the morph engine: ParticleField with GPU morph targets,
+      scroll-linked figures, idle-mounted lazy chunk, reduced-motion static
+      frame, mobile at 2,500 particles / DPR 1
+- [x] U-2 — the notebook layer: Geist Mono self-hosted, Fig. 00–05 labels,
+      mono data captions, dashed annotation rules
+- [x] U-3 — content reframing: work as a dataset table (home and /work), case
+      studies as experiment write-ups, contact as mono links
+- [x] U-23 — the aislop gate reports zero errors: react-router-dom is upgraded
+      to 7.18.5 (production dependency audit clean), the navbar derives its
+      initial scroll and active-section state instead of setting state
+      synchronously from effects, and deployment-specific URLs are centralized
+      in src/content/deployments.js with VITE_* overrides. Score 88/100; the
+      remaining warnings are the particle engine's complexity thresholds.
+- [x] U-22 — the nav wordmark moves off the chunky Molen Friend demo onto
+      Clash Display 600, self-hosted and subset to the four letters the mark
+      uses (under 1 kB). The display grotesque gives the mark an
+      editorial/technical character without the playful demo face; the old
+      font asset and its @font-face are gone.
+- [x] U-21 — the "all projects" link carries the brand accent: yellow mono
+      text in a faint yellow-outlined pill, filling yellow on hover. It is the
+      section's one next step and no longer reads as another data caption.
+- [x] U-20 — the About copy is replaced with the owner's current framing: the
+      Spotify and Uber analyses under a Data label, and four evidence-first
+      product tools under Product (Retail Visual Search retired). The items
+      render as bordered lists rather than blocks of prose, and the column is
+      capped to stay clear of the field on narrower desktops.
+- [x] U-19 — the hero's role line, rule and mono proof line collapse into one
+      line: "Data Scientist - Hyderabad, India". The opening now reads name →
+      one locator → actions, without the rule and stat strip breaking up the
+      left column.
+- [x] U-18 — the contact signal moves from the amber-to-rose ramp to a pure
+      copper ramp: a warm ivory-copper core, a copper middle, and deep copper
+      outer rings. The rose cast was the odd note — it read as a second accent
+      rather than the same outgoing material. Copper keeps the signal warm and
+      ties it to the data figure's bronze without introducing pink.
+- [x] U-17 — the hero carries the supplied interlocking-knot mark, and the
+      mangrove/dryad drawing moves to Projects, taking the place of the
+      Lissajous (retired). Both are sampled from their artwork through the same
+      grid pipeline: the knot at 192x186 cells, tinted the reference's brand
+      yellow (#fece00); the tree unchanged at 253x256 in its own greens and
+      browns. Both supplied drawings sit at 75% of their frame so the marks
+      have more air around them than the broader field figures. The flat-figure flag now belongs to any
+      supplied drawing, not
+      just index 0: `uStill` interpolates between the two ends of each morph, so
+      the tree settles square-on in Projects without snapping its orientation
+      at the handover. A viewport-width fit cap shrinks a figure uniformly when
+      the field column is narrower than its frame, and Projects moves its
+      outcome under the project name between 769 and 1199px, keeping the denser
+      tree clear of the rows. Verified at 1440x900 and 1024x768; console clean.
+- [x] U-16 — the figures carry colour chosen for what each one means, instead
+      of all being white. The data figure warms from bronze at its base to ivory
+      at the head ("measured in warm light"); the Lissajous gives each of its
+      five strands its own cool hue (mint, sky, periwinkle, lilac, rose) — the
+      separate threads resolving into one body of work; the specimen grid runs a
+      mint-to-indigo ramp across the sheet so it reads as a chart with an axis;
+      the contact signal runs from a warm core to deep outer rings, like
+      something sent outward (originally amber-to-rose; now copper, U-18).
+      Colour is carried per particle (aColor /
+      aTargetColor) and interpolated during the morph, and is permuted with the
+      Morton order so each point keeps its own colour. (The Lissajous was later
+      retired for the Projects tree; see U-17.) Verified at 1440x900 across
+      every section and through the transitions; 40fps in the software renderer
+- [x] U-15 — the transition stops stuttering during a fast scroll. Three
+      causes: a figure was generated on the frame the reader crossed into its
+      section (a 14,000-point cloud plus a Morton sort, tens of milliseconds,
+      landing exactly when scrolling is fastest), the loop read
+      `getBoundingClientRect` and `scrollHeight` every frame and forced a
+      reflow, and the scroll easing used a fixed fraction per frame, so it
+      drifted between refresh rates and lagged a fast scroll before catching up
+      in a jump. Figures are now pre-warmed across idle callbacks, the scroll
+      length and canvas rect are cached and only re-read on resize, and the
+      easing uses a time constant (`1 - exp(-dt / tau)`) so it feels the same
+      at 60 and 120Hz and tracks a fast scroll instead of falling behind.
+      Verified by scripting a full-page scroll and watching for long frames and
+      console errors, and by jumping straight to the foot of the page, where
+      the final signal now builds with no hitch
+- [x] U-14 — the supplied mangrove/dryad logo is sampled directly from the
+      artwork rather than approximated. The image was converted to a compact
+      grid (scripts/reference-to-grid.py): a 253x256 cell grid, 15 colours, four
+      bits per cell, packed into src/content/reference.js (~43 kB). shapes.js
+      decodes it, takes a deterministic sample of the drawn cells, and drops one
+      particle per cell with that cell's colour, so every leaf, the dryad, the
+      trunk and the roots land where they do in the source. Colours are carried
+      per particle and interpolated during the morph, and the drawing is flagged
+      flat: while it is at rest the scroll turn and idle drift fade to zero so
+      the logo is shown square-on and still. It originally anchored the hero; it
+      now anchors Projects (U-17). Verified in the browser at 1440x900: matches
+      the artwork, 47fps in the software renderer. Note the asset is a pngtree
+      free download — its licence should be checked before this ships on a
+      public portfolio
+- [x] U-13 — the morph flows the whole way between sections instead of
+      flashing past. The transition was bound to a narrow tail of each scroll
+      band (~120–180px) and preceded by a long static hold, so a figure only
+      reshuffled in a brief window and read as a swap, not a flow. The morph
+      is now measured between section centres: a figure holds near its own
+      centre, then pours across almost the entire gap into the next (~500px+).
+      The curl field is stronger mid-flight, and a fraction of it now runs
+      always so the field never looks frozen while a figure holds. Section
+      lead and pad widened (56–96px to 88–160px) so the gap between two
+      sections is where the flow happens, not over a section's copy. Verified
+      by sweeping the full scroll range at 1440x900
+- [x] U-12 — the field is genuinely 3D: orientation is applied in the vertex
+      shader after the morph, driven by page scroll progress so the figure
+      turns and tips continuously rather than snapping at each section. The
+      spin eases back while a shape is held, because a full turn left the
+      person edge-on and unreadable at the moment the reader should see it
+- [x] U-11 — the contact section was still painting an opaque background at a
+      higher z-index than the field, so the signal was cut in half by a black
+      band. Removed both, matching every other section. Verified by measuring
+      particle density across the whole page (9.5-15.6%) and by scanning every
+      section for an opaque background
+- [x] U-11 — every figure is framed to its own section and the scroll
+      actually animates it. Three real bugs fixed: section centres were
+      compared against document offsets without subtracting half a viewport,
+      leaving every figure out of step with its section; the settled state
+      held `morph = 1`, which shows the *next* figure, so each section
+      displayed its neighbour; and `uTilt`/`uSpin` were declared and used in
+      the shader but never written, so the rotation was frozen at zero. Each
+      figure now owns a non-overlapping band of scroll, fades in and out
+      within it, and turns and tips as it moves
+- [x] U-11 — no figure straddles a section boundary. The field is a fixed
+      canvas, so each figure sat in the middle of the screen while its own
+      section scrolled past it — the closing signal came to rest on the
+      skills/contact line, half in each section. Each figure is now offset by
+      the world distance between the middle of the canvas and the on-screen
+      centre of its section, damped like the scroll, so it travels with the
+      section it belongs to and slides between sections in step with the
+      morph. Contact is judged on where it has actually got to rather than
+      on its band: the page stops scrolling before its centre reaches the
+      middle of the screen, so the signal now fades up as contact itself
+      climbs into view. Verified by sweeping the full scroll range at
+      1440x900 and 1024x768
+- [x] U-10 — the field is actually visible: particle count raised to 14,000,
+      point size and opacity increased, and the canvas brightness filter
+      removed (it brightened the black background as much as the particles,
+      flattening the figure). The contact figure is an outgoing signal rather
+      than a funnel, which read as a cone and argued the opposite of the
+      section
+- [x] U-9 — the field no longer sits under any text. It previously started
+      at x=734 while the work rows ran to x=993; the field is now 38vw and
+      the text columns are capped, with contact aligned left to match every
+      other section. Verified by measuring rendered text extents with a Range
+      across every heading, paragraph, link and list item: zero overlaps
+- [x] U-8 — shapes no longer fade out mid-scroll: the mid-flight arc was
+      wide enough to smear a figure into a near-invisible cloud, so it is
+      tighter, points are larger, and particles no longer dim in flight.
+      Section padding reduced so there is no dead gap between sections.
+      Verified by sweeping the full scroll range and sampling particle
+      density every few hundred pixels — density never drops below 5%
+- [x] U-7 — each figure is anchored to a real section, measured from the DOM
+      and centred in the viewport, so a figure is on screen exactly while its
+      section is being read. Scroll is damped per frame and eased with
+      smoothstep, so a wheel flick becomes a continuous glide
+- [x] U-6 — the field holds five figures, one per section: sphere (hero),
+      an abstract data-figure beside "How I work", the project scatter,
+      four capability bars, and an outgoing signal — concentric rings from a
+      single origin — closing the page.
+      Fixed the real cause of the field being swallowed by the page — every
+      section painted an opaque background over the fixed canvas — and fixed
+      a NaN in the figure generator (a `const y` shadowing the outer
+      accumulator) that was poisoning the whole geometry buffer. A record
+      helix and a timeline were tried and removed: both read as scribbles, and
+      two figures in one section left a mid-section morph that never settled
+- [x] U-5 — owner review fixes: the field confined to the hero's right column
+      so it never sits under the name or role line; the skills section rebuilt
+      as four domains (Data Analysis, Machine Learning, Software Engineering,
+      Data Science) behind tabs, each with tools ranked by how many of the
+      five projects use them and the projects that prove it; the field's
+      three.js chunk restricted to desktop, where it belongs
+- [x] U-4 — QA: axe zero violations on every route, Lighthouse mobile
+      97/100/100/100 and desktop 100/100/100/100, no overflow at 390–1440,
+      link check clean, isolated-session console clean
+
+### Phase 8 — QA and launch (needs the owner's explicit go-ahead to merge)
+**Goal:** ship, then prove the new score.
+
+- [x] Device matrix via agent-browser: 360, 390, 768, 1024, 1440; every route; screenshots archived.
+- [x] Link checker across all internal and external links (repo, demo, résumé, socials).
+- [ ] Cross-browser spot check (Chrome, Firefox, Safari/iOS if available).
+- [x] Deploy Vercel preview from `ft/redesign` (deployed; owner review pending).
+- [ ] Cross-browser spot check — no Firefox or Safari available locally; owner to spot-check on a phone.
+- [ ] Merge to `main`; verify krtk06.vercel.app and krtk.xyz (both domains, redirects, HTTPS).
+- [ ] Post-launch smoke test: console clean, network 200s, OG share preview on LinkedIn.
+- [ ] Re-score section 1's table against the live site; target 9+ overall.
+
+## 6. Content checklist (owner-provided)
+
+- [ ] Exact repo URL for each project (including the additional projects)
+- [ ] Live demo URLs (where they exist)
+- [ ] Charts/screenshots from the analyses (raw files fine; they get processed in Phase 3)
+- [ ] Résumé PDF
+- [ ] Experience and education details — or explicit "hide that section"
+- [ ] Canonical domain choice (`krtk.xyz` vs `www.krtk.xyz`)
+- [ ] Optional: X/Twitter handle, booking link — omitted if not supplied
+
+## 7. Verification playbook (for the implementing agent)
+
+- Run `npm run dev`; use agent-browser for all visual verification; store screenshots under the session scratchpad in `review/` named by phase.
+- Contrast and axe checks: inject axe-core via `agent-browser eval` on each route; keep the JSON output as evidence.
+- Link checking: loop every `href` found on each built route; assert HTTP 200 (HEAD) for external links at least once before launch.
+- Lighthouse: `npx lighthouse <url> --preset=desktop --output=json` and the mobile default; store both.
+- Update this file's checkboxes and the Decisions log as work lands. Commit per meaningful step as `feat: …` / `fix: …` / `update: …` / `chore: …` — one line, no phase or step numbers.
+
+## 8. Risks and open questions
+
+- **Contrast vs mood:** the dim aesthetic is part of the identity; the token table keeps the mood but moves readable text to ≥ 4.5:1. Watch for drift back to low alphas.
+- **3D on low-end devices:** mitigated by lazy loading, adaptive counts, DPR cap, reduced-motion static frame. If it still misses the perf budget, fall back to a static rendered image of the sphere.
+- **Content timing:** phases 3 and 4 depend on owner-supplied material; sections hide gracefully rather than shipping placeholders.
+- **No SSR:** fine for Google, but social previews rely entirely on static OG tags per route — covered in Phase 7.
+- **Two domains:** krtk06.vercel.app and krtk.xyz currently serve the same build; Phase 7 makes the canonical explicit.
+
+## Appendix A — Verified defect evidence (from the review)
+
+| # | Defect | Evidence |
+|---|---|---|
+| 1 | Primary button hover white-on-white | computed styles: `color: rgb(255,255,255)`, `background: rgb(255,255,255)`, fill pseudo at `z-index:-1` |
+| 2 | `/my-work` direct load 404 | HTTP 404 text/plain; `vercel.json` absent on `main` |
+| 3 | Footer invisible | footer rect y 819–900 under a fixed gradient overlay (z-index 5); sections paint at z-index 10/20 |
+| 4 | Navbar scrolled state dead | `window.scrollY = 0` while `body.scrollTop = 3234`; class stayed `nav ` |
+| 5 | Favicon 404 | network log: `GET /vite.svg → 404`; file absent from `dist/` |
+| 6 | No meta/OG | fetched HTML has no description/og/twitter tags; robots.txt and sitemap.xml 404 |
+| 7 | Contrast failures | skill labels ≈ 2.5:1; card descriptions ≈ 3.7:1; hero sub ≈ 4.0:1; section labels ≈ 3.7:1 |
+| 8 | No focus indicators | `* { outline: none !important }` in `index.css`, nothing replaces it |
+| 9 | Misleading affordances | pointer cursor + cursor growth on `.skill-card` / `.work-card`, neither clickable |
+| 10 | Weight and deprecation | 679,700-byte uncompressed JS; `THREE.Clock` deprecation warning in console |
+
+## Appendix B — Parked v2 inventory (reference only, not reused)
+
+Tag `archive/ui-redesign` @ `551524e` contains: Tailwind v4 token system with light/dark themes; focus-visible and reduced-motion handling; content files (site/projects/skills/experience/posts); pages (Home, Work, WorkDetail, Blog, BlogPost, NotFound); components (Hero banner/avatar, SelectedWork, Experience, GithubContributions, TechStack, ChatCTA, Contact, Footer, Navbar, GridPattern, Reveal, RichText, Section, Tag, TechIcon, WorkCard, LiveDemo); `vercel.json`; avatar/banner/og-image assets; placeholder content clearly marked with TODO(placeholder). Kept archived for reference; delete the tag only when this rebuild ships.
+
+---
+
+*Next action after approval: place this file at the repository root as `implementation.md`, then begin Phase 0. Stop at the end of Phase 0 and present the changes for review.*
