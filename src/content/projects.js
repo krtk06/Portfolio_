@@ -24,6 +24,9 @@ export const projects = [
     tags: ['Python', 'FastAPI', 'Postgres', 'Semgrep'],
     repo: 'https://github.com/krtk06/retract',
     live: null,
+    film: 'https://github.com/krtk06/retract/releases/download/demo-film/retract-film.mp4',
+    filmPoster: 'https://github.com/krtk06/retract/releases/download/demo-film/retract-film-poster.png',
+    filmCaptions: 'https://github.com/krtk06/retract/releases/download/demo-film/retract-film.srt',
     featured: true,
     detail: {
       problem: [
