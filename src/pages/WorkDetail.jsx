@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { projects, getProject } from '../content/projects'
 import ExternalLink from '../components/ExternalLink'
+import ProjectMedia from '../components/ProjectMedia'
 import usePageMeta from '../lib/usePageMeta'
 import NotFound from './NotFound'
 
@@ -39,46 +40,28 @@ export default function WorkDetail() {
           ))}
         </ul>
 
-        {(project.live || project.film || project.repo) && (
+        {(project.live || project.repo) && (
           <div className="work-detail-links">
             {project.live ? (
               <ExternalLink href={project.live} className="btn-primary">
                 <span>Live demo</span>
-              </ExternalLink>
-            ) : project.film ? (
-              <ExternalLink href={project.film} className="btn-primary">
-                <span>Watch the film</span>
               </ExternalLink>
             ) : (
               <ExternalLink href={project.repo} className="btn-primary">
                 <span>View on GitHub</span>
               </ExternalLink>
             )}
-            {project.repo && (project.live || project.film) && (
+            {project.live && project.repo && (
               <ExternalLink href={project.repo} className="btn-secondary">
                 <span>Source code</span>
               </ExternalLink>
             )}
-            {project.film && project.live && (
+            {project.film && (
               <ExternalLink href={project.film} className="btn-secondary">
-                <span>Watch the film</span>
+                <span>Full product film</span>
               </ExternalLink>
             )}
           </div>
-        )}
-
-        {project.film && (
-          <figure className="work-detail-film">
-            <video controls preload="metadata" poster={project.filmPoster}>
-              <source src={project.film} type="video/mp4" />
-              Your browser does not support the video element.
-            </video>
-            {project.filmCaptions && (
-              <figcaption>
-                <ExternalLink href={project.filmCaptions}>Captions (.srt)</ExternalLink>
-              </figcaption>
-            )}
-          </figure>
         )}
 
         <div className="work-detail-body">
@@ -107,6 +90,8 @@ export default function WorkDetail() {
             </ul>
           </section>
         </div>
+
+        <ProjectMedia project={project} />
 
         <nav className="work-detail-pager" aria-label="More projects">
           {previous ? (

@@ -16,10 +16,6 @@ function Skills() {
             </li>
           ))}
         </ul>
-
-        <p className="data-caption">
-          {skills.length} tools · languages to the tooling around them
-        </p>
       </div>
     </section>
   )
